@@ -2,7 +2,7 @@ import requests
 import time
 
 API_URL = 'https://api.telegram.org/bot'
-BOT_TOKEN = '8344205366:AAG_8JoYVArQ-YUtSq2XHGKDnvpdWy_ds-c'
+BOT_TOKEN = ''
 MAX_COUNTER = 100
 
 offset = -2
