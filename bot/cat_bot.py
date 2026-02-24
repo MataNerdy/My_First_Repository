@@ -3,7 +3,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 import requests
 
-BOT_TOKEN = ''
+BOT_TOKEN = '8344205366:AAHDWFxMopRjqqqidWXdGMW3M2wXAMS05mI'
 API_CATS_URL = 'https://api.thecatapi.com/v1/images/search'
 ERROR_MESSAGE = 'Кошечка не нашлась :('
 bot = Bot(token=BOT_TOKEN)
