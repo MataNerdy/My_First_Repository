@@ -3,7 +3,7 @@ import time
 
 API_CATS_URL = 'https://api.thecatapi.com/v1/images/search'
 API_URL = 'https://api.telegram.org/bot'
-BOT_TOKEN = '8344205366:AAHDWFxMopRjqqqidWXdGMW3M2wXAMS05mI'
+BOT_TOKEN = ''
 ERROR_MESSAGE = 'Кошечка не нашлась :('
 
 offset = -2
