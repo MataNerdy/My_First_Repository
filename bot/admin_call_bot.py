@@ -2,11 +2,11 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
-BOT_TOKEN = '8344205366:AAHDWFxMopRjqqqidWXdGMW3M2wXAMS05mI'
+BOT_TOKEN = ''
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-admin_ids: list[int] = [763736300, 608089848]
+admin_ids: list[int] = []
 
 class IsAdmin(BaseFilter):
     def __init__(self, admin_ids: list[int]) -> None:
