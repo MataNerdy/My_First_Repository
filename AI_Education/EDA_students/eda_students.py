@@ -49,3 +49,74 @@ plt.title("Math score vs gender")
 sns.barplot(x='gender', y='math score', hue='gender', data=df, palette='summer', legend=False)
 plt.savefig("math_vs_gender.png")
 plt.close()
+
+print(f"\nMean math score among women: {df[df["gender"] == "female"]["math score"].mean()}\n")
+print(f"Mean math score among men: {df[df["gender"] == "male"]["math score"].mean()}\n")
+
+plt.figure(figsize=(6,4))
+plt.title("Math score vs gender")
+sns.barplot(x='gender', y='math score', hue='gender', errorbar="sd", data=df, palette='summer', legend=False)
+plt.savefig("sd_math_vs_gender.png")
+plt.close()
+
+print(f"\nDistribution of lunch type:\n\n{df["lunch"].value_counts()}")
+df["lunch"] = df["lunch"].replace('standart', 'standard')
+print(f"\nDistribution of lunch type:\n\n{df["lunch"].value_counts()}")
+
+plt.figure(figsize=(6,4))
+plt.title("Math score vs lunch")
+sns.barplot(x='lunch', y='math score', hue='lunch', data=df, palette='summer', legend=False)
+plt.savefig("math_vs_lunch.png")
+plt.close()
+
+plt.figure(figsize=(6,4))
+plt.title("Math score vs gender & lunch")
+sns.barplot(x='gender', y='math score', hue='lunch', data=df, palette='summer', legend=True)
+plt.savefig("math_vs_gender_&_lunch.png")
+plt.close()
+
+
+plt.figure(figsize=(6,4))
+plt.title("Math score vs gender & lunch")
+sns.boxplot(x='lunch', y='math score', hue='lunch', data=df)
+plt.savefig("boxplot_math_vs_lunch.png")
+plt.close()
+
+passmark = 50
+
+for col in numeric_cols:
+    df[f"{col} success"] = df[col].apply(lambda x: 1 if x >= passmark else 0)
+
+df["overall success"] = (df["math score success"]+df["reading score success"]+df["writing score success"] == 3)
+df[['math score success', 'reading score success', 'writing score success', 'overall success']].to_csv("success.csv", index=False)
+
+print(f"\nAbsolute success:\n\n{len(df[df['overall success'] == 0]) / len(df)}")
+
+print(f"\n\nParental level of education:\n\n{df['parental level of education'].value_counts()}")
+
+plt.figure(figsize=(10,4))
+plt.title("Math score vs parental level of education")
+sns.barplot(x='parental level of education', y='math score', hue='parental level of education', data=df, palette='summer', legend=False)
+plt.savefig("Math score vs parental level of education")
+plt.close()
+
+plt.figure()
+plt.title("Math success vs parental level of education")
+p = sns.countplot(x='parental level of education', data = df, hue='math score success', palette='bright')
+_ = plt.setp(p.get_xticklabels(), rotation=90)
+plt.savefig("Math success vs parental level of education.png")
+plt.close()
+
+print(f"\n\nTest preparation course:{df['test preparation course'].value_counts()}")
+
+plt.figure(figsize=(4,3))
+plt.title("Math score vs test preparation course")
+sns.barplot(x='test preparation course', y='math score', hue='test preparation course', data=df, palette='summer', legend=False)
+plt.savefig("Math score vs test preparation course.png")
+plt.close()
+
+plt.figure()
+plt.title("Math success vs test preparation course")
+p = sns.countplot(x='test preparation course', data = df, hue='math score success', palette='bright')
+plt.savefig("Math success vs test preparation course.png")
+plt.close()
