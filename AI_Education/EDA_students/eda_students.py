@@ -100,7 +100,7 @@ sns.barplot(x='parental level of education', y='math score', hue='parental level
 plt.savefig("Math score vs parental level of education")
 plt.close()
 
-plt.figure()
+plt.figure(figsize=(10,5))
 plt.title("Math success vs parental level of education")
 p = sns.countplot(x='parental level of education', data = df, hue='math score success', palette='bright')
 _ = plt.setp(p.get_xticklabels(), rotation=90)
@@ -109,7 +109,7 @@ plt.close()
 
 print(f"\n\nTest preparation course:{df['test preparation course'].value_counts()}")
 
-plt.figure(figsize=(4,3))
+plt.figure(figsize=(6,4))
 plt.title("Math score vs test preparation course")
 sns.barplot(x='test preparation course', y='math score', hue='test preparation course', data=df, palette='summer', legend=False)
 plt.savefig("Math score vs test preparation course.png")
@@ -120,3 +120,5 @@ plt.title("Math success vs test preparation course")
 p = sns.countplot(x='test preparation course', data = df, hue='math score success', palette='bright')
 plt.savefig("Math success vs test preparation course.png")
 plt.close()
+
+df.to_csv("eda_students_final.csv", index=False)
