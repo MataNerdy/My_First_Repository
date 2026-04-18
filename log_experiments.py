@@ -2,6 +2,7 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+print(dir(logger))
 logger.level = logging.DEBUG
 
 logger.warning("Предупреждение")
