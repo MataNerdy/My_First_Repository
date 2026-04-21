@@ -1,9 +1,6 @@
-import logging
-
+import logging.config
+from logging_settings import logging_config
 from module_1 import main
 
-logging.basicConfig(
-    format="#%(levelname)-8s %(name)s:%(funcName)s - %(message)s"
-)
-
+logging.config.dictConfig(logging_config)
 main()
