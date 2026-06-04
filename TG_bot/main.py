@@ -1,14 +1,7 @@
-import os
-from environs import Env
+from config.config import Config, load_config
 
-env = Env()
-env.read_env(override=True)
-bot_token = env("BOT_TOKEN")
-admin_id = env("ADMIN_ID")
+config: Config = load_config(".env")
 
-print(f"Bot token: {bot_token}")
-print(f"Admin ID: {admin_id}")
+print(f"Bot token: {config.bot.token}")
+print(f"Admin IDs: {config.bot.admin_ids}")
 print()
-
-print(os.getenv("BOT_TOKEN"))
-print(os.getenv("ADMIN_ID"))
