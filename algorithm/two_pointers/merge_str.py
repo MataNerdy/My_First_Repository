@@ -11,4 +11,4 @@ def mergeAlternately(word1, word2):
             j += 1
     return res
 
-print(mergeAlternately("abc", "prq"))
+print(mergeAlternately("abc", "prqn"))
