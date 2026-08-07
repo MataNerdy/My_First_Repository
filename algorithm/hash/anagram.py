@@ -4,11 +4,10 @@ class Solution:
         d = {}
         for i, s in enumerate(sstrs):
             if s in d:
-                d[s].append(i)
+                d[s].append(strs[i])
             else:
-                d[s] = [i]
-        return [[strs[i] for i in v] for v in d.values()]
-
+                d[s] = [strs[i]]
+        return list(d.values())
 
 strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
 solution = Solution()
