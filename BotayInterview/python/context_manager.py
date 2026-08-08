@@ -1,39 +1,75 @@
 import time
+from contextlib import contextmanager
 
-class ProfileBlock:
-    def __init__(self, name: setattr):
+
+class TemporaryValue:
+    def __init__(self, obj, name, value):
+        self.obj = obj
         self.name = name
-        self._start = None
-        self._durations = []
+        self.value = value
 
     def __enter__(self):
-        self._start = time.perf_counter()
+        self.old_value = getattr(self.obj, self.name)
+        setattr(self.obj, self.name, self.value)
         return self
+    def __exit__(self, e_t, e_v, tb):
+        setattr(self.obj, self.name, self.old_value)
 
+class Config:
+    debug = False
+
+class MyContext:
+    def __enter__(self):
+        print("Enter in Context")
+        return 'hello'
     def __exit__(self, exc_type, exc_value, traceback):
-        duration = time.perf_counter()-self._start
-        self._durations.append(duration)
-        self._start = None
-        return False
+        print("Exit from Context")
+        print("Error type:", exc_type)
+        print("Exception value:", exc_value)
+        print("Traceback:", traceback)
 
-    def get_stats(self):
-        if not self._durations:
-            return {
-                "count": 0,
-                "min": None,
-                "max": None,
-                "avg": None,
-            }
-        return {
-            "count": f"{len(self._durations)}",
-            "min": f"{min(self._durations):.4f}",
-            "max": f"{max(self._durations):.4f}",
-            "avg": f"{round((sum(self._durations)/len(self._durations)),4)}",
-        }
+class SupressZeroDivision:
+    def __enter__(self):
+        return self
+    def __exit__(self, e_t, e_v, tb):
+        if e_t == ZeroDivisionError:
+            print("Division by Zero happend")
+        return True
 
-with ProfileBlock("math section") as block:
-    time.sleep(0.1)
-    result = 2**10
-print("start")
-print(block.get_stats())
-print("stop")
+class Timer:
+    def __enter__(self):
+        self.start = time.time()
+        return self
+    def __exit__(self, e_t, e_v, tb):
+        self.end = time.time()
+        self.elapsed = self.end - self.start
+        print(f"Время выполнения: {self.elapsed:.4f} секунд")
+
+@contextmanager
+def my_context():
+    print("Вход")
+    try:
+        yield "hello"
+    finally:
+        print("Выход")
+
+with my_context() as value:
+    print(value)
+
+with MyContext() as value:
+    print(value)
+
+with SupressZeroDivision():
+    x = 1/0
+
+with Timer():
+    total = sum(range(1000000))
+
+c = Config()
+
+print(c.debug)
+
+with TemporaryValue(c, "debug", True):
+    print(c.debug)
+
+print(c.debug)

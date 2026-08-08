@@ -1,0 +1,19 @@
+2026-08-08 02:41:20,548:__main__:Tried to divide by zero
+2026-08-08 02:42:31,657:__main__:Tried to divide by zero
+Traceback (most recent call last):
+  File "/Users/Di/Documents/GitHub/My projects/My_First_Repository/log_sample.py", line 23, in divide
+    result = x / y
+             ~~^~~
+ZeroDivisionError: division by zero
+2026-08-08 02:46:46,808:__main__:Tried to divide by zero
+Traceback (most recent call last):
+  File "/Users/Di/Documents/GitHub/My projects/My_First_Repository/log_sample.py", line 29, in divide
+    result = x / y
+             ~~^~~
+ZeroDivisionError: division by zero
+2026-08-08 02:49:14,679:__main__:Tried to divide by zero
+Traceback (most recent call last):
+  File "/Users/Di/Documents/GitHub/My projects/My_First_Repository/log_sample.py", line 30, in divide
+    result = x / y
+             ~~^~~
+ZeroDivisionError: division by zero

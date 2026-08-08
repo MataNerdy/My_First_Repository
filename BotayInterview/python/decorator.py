@@ -1,58 +1,56 @@
-from functools import wraps, lru_cache, singledispatch
+import functools
 
-class Circle:
-    def __init__(self, radius):
-        self.radius = radius
 
-@property
-def radius(self):
-    return self._radius
+class CountCalls:
+    def __init__(self, func):
+        self.func = func
+        self.count = 0
 
-@radius.setter
-def radius(self, value):
-    if value < 0:
-        raise ValueError("Radius cannot be negative")
-    self._radius = value
+    def __call__(self, *args, **kwargs):
+        self.count += 1
+        return self.func(*args, **kwargs)
 
-class StringUtils:
-    @staticmethod
-    def is_palindrome(s):
-        s = s.lower()
-        return s == s[::-1]
 
-    @classmethod
-    def from_string(cls, csv_string):
-        parts = csv_string.split(",")
-        return cls(*parts)
+@CountCalls
+def say_hello():
+    print("Hello!")
 
-@lru_cache(maxsize=128)
-def fibonacci(n):
-    if n < 0:
-        raise ValueError("Negative arguments are not supported")
-    if n in (0, 1):
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
+for i in range(4):
+    say_hello()
+    print(say_hello.count)
 
-print(fibonacci(10))
 
-def debug(func):
-    @wraps(func)
+
+def log_calls(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        print(f"Calling {func.__name__} with args: {args}, kwargs: {kwargs}")
+        print("Вызов {func.__name__} c {args=}, {kwargs=}")
         return func(*args, **kwargs)
     return wrapper
 
-@singledispatch
-def serialize(obj):
-    raise NotImplementedError(f"Cannot serialize object of type {type(obj)}")
+def retry(max_appemps):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_appemps):
+                try:
+                    return func(*args, **kwargs)
+                except Exception:
+                    if attempt == max_appemps - 1:
+                        raise
+            return None
+        return wrapper
+    return decorator
 
-@serialize.register
-def _(obj: int):
-    return f"INT:{obj}"
+@log_calls
+def add(a, b):
+    """ Складывает два числа """
+    return a+b
 
-@serialize.register
-def _(obj: list):
-    return(f"List: {obj}")
+@retry(3)
+def usability_api():
+    pass
 
-print(serialize(42))
-print(serialize([1, 2, 3]))
+print(add(5, 3))
+print(add.__name__)
+print(add.__doc__)
