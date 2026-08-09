@@ -1,5 +1,6 @@
 import random
 
+
 class TaskTracker:
     def __init__(self):
         self.tasks = []
