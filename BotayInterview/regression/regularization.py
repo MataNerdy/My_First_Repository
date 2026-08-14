@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.linear_model import Lasso, Ridge, LogisticRegression
-from sklearn.datasets import make_regression, make_classification
+from sklearn.datasets import make_classification, make_regression
+from sklearn.linear_model import Lasso, LogisticRegression, Ridge
 
 X, y = make_regression(n_samples=100, n_features=10, noise=10, random_state=42)
 alphas = [0.01, 1, 100, 10000]
