@@ -1,0 +1,1594 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python DS Start — тренажёр по основам Python</title>
+<style>
+:root {
+  --bg:#0f1117; --panel:#171a23; --panel2:#202531; --text:#eef1f6; --muted:#a9b2c3;
+  --line:#303747; --accent:#7aa2ff; --good:#7bd88f; --warn:#f0c674; --bad:#ff7b88;
+  --shadow:0 10px 30px rgba(0,0,0,.24); --code:#0b0e14;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+.wrap { max-width:1120px; margin:auto; padding:28px 18px 80px; }
+.hero { background:linear-gradient(135deg,#1b2030,#151925); border:1px solid var(--line); border-radius:24px; padding:30px; box-shadow:var(--shadow); margin-bottom:18px; }
+h1 { margin:0 0 8px; font-size:clamp(28px,5vw,46px); line-height:1.12; }
+.hero p { color:var(--muted); max-width:900px; margin:8px 0; }
+.toolbar { position:sticky; top:0; z-index:20; display:flex; gap:8px; flex-wrap:wrap; padding:10px 0 12px; background:linear-gradient(var(--bg) 72%,transparent); }
+button,.jump { border:1px solid var(--line); background:var(--panel2); color:var(--text); border-radius:10px; padding:9px 12px; cursor:pointer; font-weight:700; }
+button:hover,.jump:hover { border-color:var(--accent); }
+.scorebox { margin-left:auto; padding:9px 14px; background:#111620; border:1px solid var(--line); border-radius:10px; font-weight:800; }
+.nav { display:grid; grid-template-columns:repeat(auto-fit,minmax(42px,1fr)); gap:7px; margin:14px 0 22px; }
+.jump { text-align:center; text-decoration:none; color:var(--muted); padding:7px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:18px; margin:14px 0; overflow:hidden; box-shadow:var(--shadow); }
+.card.flash { outline:3px solid var(--accent); }
+.qhead { display:grid; grid-template-columns:46px 1fr auto; gap:12px; align-items:start; padding:18px; }
+.num { width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#232b3b;color:var(--accent);font-weight:900;font-size:18px; }
+.topic { color:var(--accent); font-size:12px; text-transform:uppercase; letter-spacing:.08em; font-weight:850; margin-bottom:3px; }
+.qtitle { font-weight:850; font-size:18px; }
+.reveal { min-width:145px; align-self:center; }
+.answer { display:none; border-top:1px solid var(--line); padding:20px 22px 8px; background:#131720; }
+.answer.open { display:block; }
+.answer h4 { margin:18px 0 4px; }
+.answer ul,.answer ol { padding-left:22px; }
+code { background:#252b37; border:1px solid #343c4c; border-radius:6px; padding:1px 5px; color:#dbe7ff; }
+pre { background:var(--code); border:1px solid #303747; border-radius:12px; padding:14px; overflow:auto; line-height:1.45; }
+pre code { background:transparent; border:0; padding:0; color:#dbe7ff; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+.question-code { margin:10px 0 0; font-size:13px; }
+.note,.warn { margin:14px 0; padding:12px 14px; border-radius:10px; border-left:4px solid var(--accent); background:#1b2230; }
+.warn { border-left-color:var(--warn); background:#282316; }
+.checker { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px; }
+.checker > div { background:#1b202c; border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+.checker h4 { margin:0 0 6px; }
+details { margin-top:9px; } summary { cursor:pointer; color:var(--accent); font-weight:700; }
+.scoreline { display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:12px 18px 16px; border-top:1px solid var(--line); }
+.scoreline span { color:var(--muted); font-weight:700; margin-right:4px; }
+.score { font-size:13px; padding:7px 9px; }
+.score.active[data-score="0"] { border-color:var(--bad); color:var(--bad); }
+.score.active[data-score="1"] { border-color:var(--warn); color:var(--warn); }
+.score.active[data-score="2"] { border-color:var(--good); color:var(--good); }
+.legend { background:#151923;border:1px solid var(--line);border-radius:16px;padding:18px;margin:20px 0; }
+.small { color:var(--muted); font-size:14px; }
+table { width:100%; border-collapse:collapse; margin:14px 0; overflow:hidden; border-radius:10px; } th,td { border:1px solid var(--line); padding:9px 10px; text-align:left; } th { background:#202531; }
+.footer { color:var(--muted); text-align:center; margin-top:35px; }
+.footer a { color:var(--accent); }
+@media (max-width:720px) {
+  .qhead { grid-template-columns:42px 1fr; } .reveal { grid-column:1 / -1; width:100%; } .checker { grid-template-columns:1fr; } .scorebox { margin-left:0; width:100%; text-align:center; } table { font-size:13px; }
+}
+@media print {
+  body { background:white; color:black; } .toolbar,.nav,.scoreline,.reveal { display:none !important; } .hero,.card { box-shadow:none; border:1px solid #bbb; background:white; } .answer { display:block !important; background:white; } .checker > div,.note,.warn,pre,th { background:white; color:black; } code,pre code { color:black; background:white; border-color:#aaa; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>Python DS Start · Основы Python</h1>
+  <p><b>Тренажёр: 36 вопросов + 1 практическая задача</b> из блока «Python под капотом».</p>
+  <p>Режим: сначала отвечаешь вслух без подсказки → друг открывает эталон → сверяет ключевые пункты → задаёт допвопрос → ставит 0/1/2. Баллы сохраняются в браузере.</p>
+  <p class="small"><b>Важно:</b> исходный PDF содержит вопросы и практику, но не эталонные ответы. Ответы ниже составлены как тренировочный ориентир; где речь об устройстве встроенных структур, имеется в виду прежде всего современный CPython.</p>
+</header>
+<div class="toolbar">
+  <button onclick="hideAll()">Скрыть всё</button>
+  <button onclick="showAll()">Показать всё</button>
+  <button onclick="randomQuestion()">🎲 Случайный вопрос</button>
+  <button onclick="resetScores()">Сбросить баллы</button>
+  <div class="scorebox" id="scorebox">Баллы: 0 / 74</div>
+</div>
+<div class="nav"><a class="jump" href="#q1">1</a><a class="jump" href="#q2">2</a><a class="jump" href="#q3">3</a><a class="jump" href="#q4">4</a><a class="jump" href="#q5">5</a><a class="jump" href="#q6">6</a><a class="jump" href="#q7">7</a><a class="jump" href="#q8">8</a><a class="jump" href="#q9">9</a><a class="jump" href="#q10">10</a><a class="jump" href="#q11">11</a><a class="jump" href="#q12">12</a><a class="jump" href="#q13">13</a><a class="jump" href="#q14">14</a><a class="jump" href="#q15">15</a><a class="jump" href="#q16">16</a><a class="jump" href="#q17">17</a><a class="jump" href="#q18">18</a><a class="jump" href="#q19">19</a><a class="jump" href="#q20">20</a><a class="jump" href="#q21">21</a><a class="jump" href="#q22">22</a><a class="jump" href="#q23">23</a><a class="jump" href="#q24">24</a><a class="jump" href="#q25">25</a><a class="jump" href="#q26">26</a><a class="jump" href="#q27">27</a><a class="jump" href="#q28">28</a><a class="jump" href="#q29">29</a><a class="jump" href="#q30">30</a><a class="jump" href="#q31">31</a><a class="jump" href="#q32">32</a><a class="jump" href="#q33">33</a><a class="jump" href="#q34">34</a><a class="jump" href="#q35">35</a><a class="jump" href="#q36">36</a><a class="jump" href="#q37">P</a></div>
+<div class="legend"><b>Как оценивать:</b> <span class="small">0 — ответ неверный / не начат · 1 — идея есть, но пропущены важные пункты · 2 — уверенный ответ + выдержан допвопрос.</span></div>
+
+<section class="card" id="q1" data-topic="Окружения">
+  <div class="qhead">
+    <div class="num">1</div>
+    <div>
+      <div class="topic">Окружения</div>
+      <div class="qtitle">Что такое virtual environment и зачем он нужен?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(1)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-1">
+    <p><b>Virtual environment (виртуальное окружение)</b> — изолированное окружение Python для конкретного проекта. У него свой набор установленных пакетов (<code>site-packages</code>) и свой путь к интерпретатору.</p>
+<ul><li>разные проекты могут использовать разные версии одних и тех же библиотек;</li><li>зависимости проекта не засоряют глобальную установку Python;</li><li>окружение легче воспроизвести через <code>requirements.txt</code>, <code>pyproject.toml</code>, lock-файл и т. п.</li></ul>
+<pre><code>python -m venv .venv
+source .venv/bin/activate   # macOS / Linux
+# .venv\Scripts\activate  # Windows</code></pre>
+<div class="note"><b>Собеседовательная формулировка:</b> venv решает прежде всего проблему <i>изоляции зависимостей</i> разных проектов.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>изоляция зависимостей</li><li>разные версии пакетов для разных проектов</li><li>свой site-packages</li><li>воспроизводимость окружения</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Чем venv отличается от Docker?</p>
+        <details><summary>Ответ на допвопрос</summary><p>venv изолирует в основном Python-интерпретатор и Python-пакеты; Docker изолирует приложение шире: файловую систему, системные библиотеки, процессы, сетевые настройки и т. д.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="1" data-score="0">0 — мимо</button>
+    <button class="score" data-q="1" data-score="1">1 — частично</button>
+    <button class="score" data-q="1" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q2" data-topic="Окружения">
+  <div class="qhead">
+    <div class="num">2</div>
+    <div>
+      <div class="topic">Окружения</div>
+      <div class="qtitle">Какие проблемы могут возникнуть при использовании глобальной установки пакетов?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(2)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-2">
+    <ul><li><b>Конфликты версий:</b> проекту A нужен <code>lib==1.x</code>, проекту B — <code>lib==2.x</code>.</li><li><b>Невоспроизводимость:</b> трудно понять, какие зависимости реально нужны конкретному проекту.</li><li><b>Загрязнение окружения:</b> глобально накапливаются десятки не связанных пакетов.</li><li><b>Права доступа:</b> глобальная установка иногда требует повышенных прав.</li><li><b>Риск сломать инструменты:</b> обновление общего пакета может повлиять на другие проекты или системные утилиты.</li></ul>
+<div class="note">Поэтому нормальный дефолт для проекта — отдельное окружение.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>конфликт версий</li><li>невоспроизводимость</li><li>загрязнение глобального Python</li><li>проблемы с правами/другими проектами</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему просто <code>pip freeze</code> в глобальном окружении не решает проблему?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Он зафиксирует весь глобальный набор пакетов, включая лишние и транзитивные зависимости других проектов; изоляции при этом всё равно нет.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="2" data-score="0">0 — мимо</button>
+    <button class="score" data-q="2" data-score="1">1 — частично</button>
+    <button class="score" data-q="2" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q3" data-topic="ООП">
+  <div class="qhead">
+    <div class="num">3</div>
+    <div>
+      <div class="topic">ООП</div>
+      <div class="qtitle">Чем отличается класс от объекта? Приведите пример.</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(3)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-3">
+    <p><b>Класс</b> — описание/шаблон типа: какие данные и поведение будут у его экземпляров. <b>Объект</b> (экземпляр) — конкретная сущность, созданная по этому классу.</p>
+<pre><code>class Cat:
+    def __init__(self, name):
+        self.name = name
+
+barsik = Cat("Барсик")
+murka = Cat("Мурка")</code></pre>
+<p><code>Cat</code> — класс, <code>barsik</code> и <code>murka</code> — два разных объекта этого класса.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>класс — шаблон/тип</li><li>объект — конкретный экземпляр</li><li>у объектов собственное состояние</li><li>пример</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Сам класс <code>Cat</code> в Python является объектом?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Да. Классы в Python — объекты (обычно экземпляры метакласса <code>type</code>).</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="3" data-score="0">0 — мимо</button>
+    <button class="score" data-q="3" data-score="1">1 — частично</button>
+    <button class="score" data-q="3" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q4" data-topic="ООП">
+  <div class="qhead">
+    <div class="num">4</div>
+    <div>
+      <div class="topic">ООП</div>
+      <div class="qtitle">Что такое инкапсуляция, полиморфизм, наследование?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(4)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-4">
+    <p><b>Инкапсуляция</b> — объединение состояния и поведения внутри объекта и работа с ним через понятный интерфейс. В Python нет жёсткого <code>private</code> как в некоторых языках: используются соглашение <code>_name</code>, name mangling для <code>__name</code>, свойства и методы.</p>
+<p><b>Наследование</b> — создание нового класса на основе существующего: подкласс получает его поведение и может расширять/переопределять его.</p>
+<p><b>Полиморфизм</b> — один интерфейс, разные реализации. В Python это часто проявляется через duck typing:</p>
+<pre><code>def make_sound(animal):
+    animal.sound()  # не важно, Cat это или Dog — важен интерфейс</code></pre>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>инкапсуляция — интерфейс к состоянию/поведению</li><li>наследование — базовый и дочерний класс</li><li>полиморфизм — один интерфейс, разные реализации</li><li>duck typing</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Что предпочтительнее: наследование или композиция?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Зависит от модели. Наследование хорошо выражает отношение «is-a», композиция — «has-a» и обычно даёт меньше связности.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="4" data-score="0">0 — мимо</button>
+    <button class="score" data-q="4" data-score="1">1 — частично</button>
+    <button class="score" data-q="4" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q5" data-topic="ООП">
+  <div class="qhead">
+    <div class="num">5</div>
+    <div>
+      <div class="topic">ООП</div>
+      <div class="qtitle">Что такое self в методах класса и почему его нужно указывать явно?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(5)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-5">
+    <p><code>self</code> — ссылка на <b>конкретный экземпляр</b>, для которого вызван instance-метод.</p>
+<pre><code>class User:
+    def hello(self, name):
+        return f"{self}: hello, {name}"
+
+u = User()
+u.hello("Ann")</code></pre>
+<p>Концептуально вызов <code>u.hello("Ann")</code> близок к <code>User.hello(u, "Ann")</code>: объект <code>u</code> автоматически связывается с первым параметром метода.</p>
+<div class="note"><code>self</code> — соглашение об имени, не ключевое слово. Но параметр для экземпляра нужен, если это обычный instance method.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>ссылка на экземпляр</li><li>через self доступны атрибуты объекта</li><li>obj.m(x) ≈ Class.m(obj, x)</li><li>self — соглашение имени</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему у <code>@staticmethod</code> нет <code>self</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Статический метод не связывается ни с экземпляром, ни с классом; Python не подставляет ему первый аргумент автоматически.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="5" data-score="0">0 — мимо</button>
+    <button class="score" data-q="5" data-score="1">1 — частично</button>
+    <button class="score" data-q="5" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q6" data-topic="ООП">
+  <div class="qhead">
+    <div class="num">6</div>
+    <div>
+      <div class="topic">ООП</div>
+      <div class="qtitle">Можно ли создать класс без __init__? Если да, то как будет работать его инициализация?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(6)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-6">
+    <p><b>Да.</b> Если класс не определяет <code>__init__</code>, он наследует его от базового класса. Для простого класса это в итоге <code>object.__init__</code>.</p>
+<pre><code>class Empty:
+    pass
+
+x = Empty()  # корректно</code></pre>
+<p>Сам объект всё равно создаётся — за создание отвечает <code>__new__</code>. <code>__init__</code> лишь инициализирует уже созданный экземпляр.</p>
+<div class="warn">Если унаследованный <code>__init__</code> не принимает переданные аргументы, вызов вроде <code>Empty(1)</code> завершится <code>TypeError</code>.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>да</li><li>__init__ наследуется</li><li>создание делает __new__</li><li>object.__init__ для простого случая</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Можно ли вручную вызвать <code>obj.__init__()</code> ещё раз?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Технически да: это повторно вызовет метод инициализации на уже существующем объекте, но новый объект не создаст.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="6" data-score="0">0 — мимо</button>
+    <button class="score" data-q="6" data-score="1">1 — частично</button>
+    <button class="score" data-q="6" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q7" data-topic="HashMap">
+  <div class="qhead">
+    <div class="num">7</div>
+    <div>
+      <div class="topic">HashMap</div>
+      <div class="qtitle">Как реализованы словари в Python? Какова временная сложность операций?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(7)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-7">
+    <p>В <b>CPython</b> <code>dict</code> реализован как <b>хэш-таблица</b>. Для ключа вычисляется <code>hash(key)</code>, по нему выбирается позиция; при коллизиях таблица ищет другую позицию по последовательности проб.</p>
+<p>Современный CPython использует компактную организацию словаря: индексы таблицы отделены от плотного массива записей. Порядок вставки словаря сохраняется.</p>
+<table><tr><th>Операция</th><th>Средняя</th><th>Худшая</th></tr>
+<tr><td><code>d[key]</code>, <code>key in d</code></td><td>O(1)</td><td>O(n)</td></tr>
+<tr><td>вставка / обновление</td><td>O(1) амортизированно</td><td>O(n)</td></tr>
+<tr><td>удаление</td><td>O(1) амортизированно</td><td>O(n)</td></tr>
+<tr><td>обход всех элементов</td><td>O(n)</td><td>O(n)</td></tr></table>
+<div class="note">Почему «в среднем»? Из-за коллизий и периодических resize таблицы.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>хэш-таблица</li><li>hash(key)</li><li>коллизии и probing</li><li>O(1) в среднем</li><li>O(n) в худшем случае</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Что происходит при коллизии хэшей двух разных ключей?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Одинаковый хэш не означает равенство. Таблица пробует другие позиции и для кандидатов проверяет равенство ключей через <code>==</code>/<code>__eq__</code>.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="7" data-score="0">0 — мимо</button>
+    <button class="score" data-q="7" data-score="1">1 — частично</button>
+    <button class="score" data-q="7" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q8" data-topic="HashMap">
+  <div class="qhead">
+    <div class="num">8</div>
+    <div>
+      <div class="topic">HashMap</div>
+      <div class="qtitle">Почему ключом в словаре может быть только хэшируемый тип?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(8)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-8">
+    <p>Словарь должен быстро находить позицию ключа по его хэшу. Поэтому ключ должен быть <b>hashable</b>:</p>
+<ul><li>иметь хэш, который <b>не меняется</b>, пока объект используется ключом;</li><li>быть сравнимым на равенство;</li><li>соблюдать правило: если <code>a == b</code>, то <code>hash(a) == hash(b)</code>.</li></ul>
+<p>Если бы хэш ключа изменился после вставки, словарь искал бы его уже «не там», где он был сохранён.</p>
+<p>Обычно hashable: <code>int</code>, <code>str</code>, <code>bytes</code>, <code>frozenset</code>, кортеж из хэшируемых элементов. Обычно unhashable: <code>list</code>, <code>dict</code>, <code>set</code>.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>стабильный hash</li><li>равные объекты → одинаковый hash</li><li>словарь ищет по hash</li><li>mutable контейнеры обычно unhashable</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Обязательно ли хэшируемый объект должен быть неизменяемым?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Строго логически — нет: пользовательский объект может быть mutable и hashable. Но те части состояния, от которых зависят <code>__hash__</code> и <code>__eq__</code>, нельзя менять, пока объект является ключом.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="8" data-score="0">0 — мимо</button>
+    <button class="score" data-q="8" data-score="1">1 — частично</button>
+    <button class="score" data-q="8" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q9" data-topic="HashMap">
+  <div class="qhead">
+    <div class="num">9</div>
+    <div>
+      <div class="topic">HashMap</div>
+      <div class="qtitle">Что произойдёт, если изменить список внутри кортежа, который был ключом в словаре?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(9)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-9">
+    <p>Это вопрос-ловушка: <b>такой кортеж изначально нельзя использовать как ключ</b>, если внутри него есть обычный <code>list</code>.</p>
+<pre><code>key = (1, [2, 3])
+d = {key: "value"}
+# TypeError: unhashable type: 'list'</code></pre>
+<p>Хэш кортежа зависит от хэшей его элементов. Если хотя бы один элемент нехэшируемый, весь кортеж нехэшируем.</p>
+<div class="note">Поэтому стадии «изменить список после того, как кортеж стал ключом» здесь не наступает.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>сценарий невозможен</li><li>list unhashable</li><li>tuple hashable только если все элементы hashable</li><li>TypeError</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>А что будет, если ключ — пользовательский mutable-объект с изменяемым хэшем?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Это нарушит контракт хэшируемости: после изменения словарь может перестать находить ключ или вести себя некорректно с точки зрения логики программы.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="9" data-score="0">0 — мимо</button>
+    <button class="score" data-q="9" data-score="1">1 — частично</button>
+    <button class="score" data-q="9" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q10" data-topic="Типы данных">
+  <div class="qhead">
+    <div class="num">10</div>
+    <div>
+      <div class="topic">Типы данных</div>
+      <div class="qtitle">Приведите 3 примера изменяемых типов данных.</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(10)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-10">
+    <p>Классическая тройка:</p><ul><li><code>list</code></li><li><code>dict</code></li><li><code>set</code></li></ul>
+<p>Их содержимое можно менять <b>на месте</b>, сохраняя identity объекта.</p>
+<pre><code>a = [1, 2]
+old_id = id(a)
+a.append(3)
+assert id(a) == old_id</code></pre>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>list</li><li>dict</li><li>set</li><li>можно менять объект на месте</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p><code>tuple</code> с вложенным списком — изменяемый или неизменяемый?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Сам кортеж неизменяем: нельзя заменить его элементы. Но вложенный mutable-объект можно изменить, поэтому содержимое, видимое через кортеж, способно измениться.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="10" data-score="0">0 — мимо</button>
+    <button class="score" data-q="10" data-score="1">1 — частично</button>
+    <button class="score" data-q="10" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q11" data-topic="Типы данных">
+  <div class="qhead">
+    <div class="num">11</div>
+    <div>
+      <div class="topic">Типы данных</div>
+      <div class="qtitle">Приведите 3 примера неизменяемых типов данных.</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(11)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-11">
+    <p>Например:</p><ul><li><code>int</code></li><li><code>str</code></li><li><code>tuple</code></li></ul>
+<p>Также: <code>float</code>, <code>bool</code>, <code>bytes</code>, <code>frozenset</code>.</p>
+<div class="note">«Неизменяемый» означает: значение самого объекта нельзя изменить на месте; операция создаёт другой объект.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>int</li><li>str</li><li>tuple</li><li>изменение означает создание нового объекта</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Все ли immutable-объекты хэшируемы?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Не обязательно по общей модели объектов, но встроенные immutable-типы обычно хэшируемы при условии, что их содержимое тоже хэшируемо; например tuple с list — не хэшируем.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="11" data-score="0">0 — мимо</button>
+    <button class="score" data-q="11" data-score="1">1 — частично</button>
+    <button class="score" data-q="11" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q12" data-topic="List / complexity">
+  <div class="qhead">
+    <div class="num">12</div>
+    <div>
+      <div class="topic">List / complexity</div>
+      <div class="qtitle">Какая временная сложность append в список?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(12)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-12">
+    <p><code>list.append(x)</code> — <b>O(1) амортизированно</b>.</p>
+<p>Обычно у списка есть запас свободной ёмкости, поэтому новый элемент просто записывается в следующую ячейку. Но иногда ёмкость заканчивается: CPython выделяет более крупный массив и переносит ссылки на элементы — такой отдельный <code>append</code> может стоить <b>O(n)</b>.</p>
+<div class="note">Поэтому на длинной серии добавлений средняя стоимость одного append остаётся O(1).</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>O(1) амортизированно</li><li>иногда O(n) при resize</li><li>list хранит динамический массив</li><li>есть запас capacity</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Чем <code>append(x)</code> отличается по сложности от <code>lst = lst + [x]</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>append меняет существующий список и амортизированно O(1); конкатенация создаёт новый список и копирует элементы, поэтому O(n).</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="12" data-score="0">0 — мимо</button>
+    <button class="score" data-q="12" data-score="1">1 — частично</button>
+    <button class="score" data-q="12" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q13" data-topic="List / complexity">
+  <div class="qhead">
+    <div class="num">13</div>
+    <div>
+      <div class="topic">List / complexity</div>
+      <div class="qtitle">Что такое амортизированная временная сложность и почему у списка append не всегда O(1)?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(13)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-13">
+    <p><b>Амортизированная сложность</b> оценивает среднюю стоимость операции на <b>последовательности</b> операций, даже если отдельные операции иногда дорогие.</p>
+<p>Для списка большинство <code>append</code> — O(1). Когда внутренний массив переполняется, нужен resize и копирование примерно O(n). Но resize случается не каждый раз, потому что память выделяется с запасом.</p>
+<p>В результате серия из <code>n</code> добавлений занимает O(n) суммарно, значит один <code>append</code> — O(1) амортизированно.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>усреднение по серии операций</li><li>обычные append O(1)</li><li>resize O(n)</li><li>редкие дорогие операции распределяются по дешёвым</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Амортизированная O(1) — это то же самое, что average-case O(1)?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Нет. Амортизированный анализ даёт гарантию на стоимость последовательности операций без вероятностного предположения о входах; average-case обычно опирается на распределение входов/случаев.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="13" data-score="0">0 — мимо</button>
+    <button class="score" data-q="13" data-score="1">1 — частично</button>
+    <button class="score" data-q="13" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q14" data-topic="List / complexity">
+  <div class="qhead">
+    <div class="num">14</div>
+    <div>
+      <div class="topic">List / complexity</div>
+      <div class="qtitle">А вставка в начало списка сколько занимает по времени и памяти?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(14)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-14">
+    <p><code>lst.insert(0, x)</code> требует сдвинуть все существующие ссылки на один индекс вправо, поэтому <b>время O(n)</b>.</p>
+<p>По памяти:</p><ul><li>если текущей ёмкости хватает — дополнительная рабочая память порядка O(1);</li><li>если нужен рост backing array — может временно потребоваться O(n) дополнительной памяти для нового массива;</li><li>сам список из n элементов в любом случае занимает O(n) памяти.</li></ul>
+<div class="note">Если часто добавляем в начало, обычно лучше <code>collections.deque.appendleft()</code>, а не list.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>время O(n)</li><li>все элементы сдвигаются</li><li>при resize возможна O(n) память</li><li>для головы лучше deque</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему <code>deque.appendleft()</code> лучше для частых вставок в начало?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Deque спроектирован для O(1) добавления/удаления с обоих концов и не требует сдвигать все элементы как непрерывный list.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="14" data-score="0">0 — мимо</button>
+    <button class="score" data-q="14" data-score="1">1 — частично</button>
+    <button class="score" data-q="14" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q15" data-topic="Linked List">
+  <div class="qhead">
+    <div class="num">15</div>
+    <div>
+      <div class="topic">Linked List</div>
+      <div class="qtitle">Как реализовать связный список на Python?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(15)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-15">
+    <p>Минимальный односвязный список: каждый узел хранит значение и ссылку на следующий узел.</p>
+<pre><code>class Node:
+    def __init__(self, value, next_node=None):
+        self.value = value
+        self.next = next_node
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def push_front(self, value):
+        self.head = Node(value, self.head)
+
+    def __iter__(self):
+        cur = self.head
+        while cur is not None:
+            yield cur.value
+            cur = cur.next</code></pre>
+<p><code>push_front</code> — O(1). Обход — O(n).</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>Node хранит value и next</li><li>head</li><li>вставка в голову O(1)</li><li>обход через ссылки</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Что добавить для двусвязного списка?</p>
+        <details><summary>Ответ на допвопрос</summary><p>В каждом узле хранить не только <code>next</code>, но и <code>prev</code>; обычно ещё удобно хранить <code>tail</code>.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="15" data-score="0">0 — мимо</button>
+    <button class="score" data-q="15" data-score="1">1 — частично</button>
+    <button class="score" data-q="15" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q16" data-topic="Linked List">
+  <div class="qhead">
+    <div class="num">16</div>
+    <div>
+      <div class="topic">Linked List</div>
+      <div class="qtitle">Какая сложность по времени у вставки/поиска в списке vs linked list?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(16)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-16">
+    <table><tr><th>Операция</th><th>Python list (динамический массив)</th><th>Linked list</th></tr>
+<tr><td>доступ по индексу</td><td><b>O(1)</b></td><td>O(n)</td></tr>
+<tr><td>поиск значения</td><td>O(n)</td><td>O(n)</td></tr>
+<tr><td>вставка в начало</td><td>O(n)</td><td><b>O(1)</b></td></tr>
+<tr><td>вставка после уже известного узла</td><td>O(n) для сдвига</td><td><b>O(1)</b></td></tr>
+<tr><td>вставка «по индексу»</td><td>O(n)</td><td>O(n), потому что сначала нужно дойти</td></tr>
+<tr><td>append в конец</td><td><b>O(1) аморт.</b></td><td>O(1) при наличии tail, иначе O(n)</td></tr></table>
+<div class="note">У linked list есть цена: дополнительные ссылки на каждый узел и хуже cache locality. В Python встроенный <code>list</code> на практике очень часто быстрее.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>list индекс O(1)</li><li>поиск в обоих O(n)</li><li>linked list вставка у известного узла O(1)</li><li>вставка по индексу всё равно O(n)</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему linked list не даёт O(1) вставку в произвольную позицию по номеру?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Потому что сначала надо пройти от head до нужного узла — это O(n). O(1) начинается только когда ссылка на нужный узел уже есть.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="16" data-score="0">0 — мимо</button>
+    <button class="score" data-q="16" data-score="1">1 — частично</button>
+    <button class="score" data-q="16" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q17" data-topic="Typing">
+  <div class="qhead">
+    <div class="num">17</div>
+    <div>
+      <div class="topic">Typing</div>
+      <div class="qtitle">Для чего нужны аннотации типов в Python?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(17)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-17">
+    <p>Аннотации типов описывают ожидаемые типы параметров, возвращаемых значений, переменных и т. д.</p>
+<pre><code>def total(prices: list[float]) -> float:
+    return sum(prices)</code></pre>
+<ul><li>улучшают читаемость и документацию кода;</li><li>помогают IDE с автодополнением и рефакторингом;</li><li>позволяют статическим анализаторам (<code>mypy</code>, <code>pyright</code> и др.) находить ошибки до запуска;</li><li>помогают описывать контракты API и generic-код.</li></ul>
+<div class="warn">По умолчанию аннотации <b>не заставляют</b> Python проверять типы при вызове функции.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>документация/читаемость</li><li>IDE</li><li>статический анализ</li><li>не меняют семантику выполнения сами по себе</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Что вернёт <code>func.__annotations__</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Метаданные аннотаций функции (их runtime-представление зависит от версии/режима работы с аннотациями); это не автоматическая проверка типов.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="17" data-score="0">0 — мимо</button>
+    <button class="score" data-q="17" data-score="1">1 — частично</button>
+    <button class="score" data-q="17" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q18" data-topic="Typing">
+  <div class="qhead">
+    <div class="num">18</div>
+    <div>
+      <div class="topic">Typing</div>
+      <div class="qtitle">Может ли Python проверять типы на лету или это только статический анализ?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(18)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-18">
+    <p>Сам язык остаётся <b>динамически типизированным</b>. Обычные type hints не включают автоматическую runtime-проверку.</p>
+<pre><code>def add(x: int, y: int) -> int:
+    return x + y
+
+add("a", "b")  # сами аннотации этот вызов не запрещают</code></pre>
+<p>Проверка может быть:</p><ul><li><b>статической</b> — mypy, pyright, IDE;</li><li><b>runtime</b> — если вы сами используете <code>isinstance</code> или библиотеку/фреймворк, который валидирует данные.</li></ul>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>Python динамически типизирован</li><li>hints не проверяются автоматически</li><li>статические checker'ы</li><li>runtime-проверку можно добавить отдельно</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Аннотация <code>x: int</code> преобразует строку <code>"3"</code> в int?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Нет. Аннотация — метаданные, преобразование/валидацию нужно писать отдельно или поручать библиотеке.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="18" data-score="0">0 — мимо</button>
+    <button class="score" data-q="18" data-score="1">1 — частично</button>
+    <button class="score" data-q="18" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q19" data-topic="Typing">
+  <div class="qhead">
+    <div class="num">19</div>
+    <div>
+      <div class="topic">Typing</div>
+      <div class="qtitle">Как использовать Optional, Union, Any, TypeVar?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(19)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-19">
+    <pre><code>from typing import Optional, Union, Any, TypeVar
+
+# Optional[T] == T | None
+def find_user(user_id: int) -> str | None: ...
+
+# Union[A, B] == A | B
+def parse(x: int | str) -> int: ...
+
+# Any — отключает строгие ожидания для значения
+def dump(x: Any) -> str: ...
+
+# TypeVar связывает типы между позициями
+T = TypeVar("T")
+def first(items: list[T]) -> T:
+    return items[0]</code></pre>
+<ul><li><code>Optional[int]</code> = <code>int | None</code>.</li><li><code>Union[int, str]</code> = <code>int | str</code>.</li><li><code>Any</code> говорит type checker'у не ограничивать тип обычным образом.</li><li><code>TypeVar</code> задаёт переменную типа и сохраняет связь: если <code>list[str]</code> пришёл на вход, <code>first</code> возвращает <code>str</code>.</li></ul>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>Optional = T | None</li><li>Union = A | B</li><li>Any — максимально свободный тип для checker'а</li><li>TypeVar — связь generic-типов</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Чем <code>Any</code> отличается от <code>object</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p><code>object</code> означает «любой объект», но checker разрешит только операции, известные для object, пока тип не уточнён. <code>Any</code> в основном пропускает проверки для такого значения.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="19" data-score="0">0 — мимо</button>
+    <button class="score" data-q="19" data-score="1">1 — частично</button>
+    <button class="score" data-q="19" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q20" data-topic="Декораторы">
+  <div class="qhead">
+    <div class="num">20</div>
+    <div>
+      <div class="topic">Декораторы</div>
+      <div class="qtitle">Что такое декоратор в Python и как он работает изнутри?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(20)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-20">
+    <p>Декоратор — callable, который получает функцию/класс и возвращает объект, который будет связан с исходным именем вместо него.</p>
+<pre><code>def deco(func):
+    def wrapper(*args, **kwargs):
+        print("before")
+        result = func(*args, **kwargs)
+        print("after")
+        return result
+    return wrapper
+
+@deco
+def add(a, b):
+    return a + b</code></pre>
+<p>Синтаксический смысл:</p><pre><code>add = deco(add)</code></pre>
+<p>Выражение декоратора вычисляется при выполнении определения функции (например, при импорте модуля), а <code>wrapper</code> — уже при последующих вызовах.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>принимает callable</li><li>возвращает callable/замену</li><li>@deco ≈ func = deco(func)</li><li>часто wrapper + closure</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Обязан ли декоратор возвращать функцию?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Нет. Он может вернуть любой объект; но если после декорирования имя должно оставаться вызываемым как функция, возвращаемый объект должен быть callable.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="20" data-score="0">0 — мимо</button>
+    <button class="score" data-q="20" data-score="1">1 — частично</button>
+    <button class="score" data-q="20" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q21" data-topic="Декораторы">
+  <div class="qhead">
+    <div class="num">21</div>
+    <div>
+      <div class="topic">Декораторы</div>
+      <div class="qtitle">Как написать свой декоратор, который считает время выполнения функции?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(21)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-21">
+    <pre><code>from functools import wraps
+from time import perf_counter
+
+def timed(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = perf_counter()
+        try:
+            return func(*args, **kwargs)
+        finally:
+            elapsed = perf_counter() - start
+            print(f"{func.__name__}: {elapsed:.4f} s")
+    return wrapper
+
+@timed
+def work():
+    sum(range(1_000_000))</code></pre>
+<p><code>perf_counter()</code> подходит для измерения длительности. <code>finally</code> гарантирует, что время будет выведено даже если функция выбросит исключение.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>perf_counter</li><li>wrapper принимает *args/**kwargs</li><li>возвращает result</li><li>wraps</li><li>finally — полезный нюанс</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему не <code>time.time()</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Для измерения коротких интервалов <code>perf_counter()</code> — монотонный высокоточный таймер, специально предназначенный для измерения длительностей.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="21" data-score="0">0 — мимо</button>
+    <button class="score" data-q="21" data-score="1">1 — частично</button>
+    <button class="score" data-q="21" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q22" data-topic="Декораторы">
+  <div class="qhead">
+    <div class="num">22</div>
+    <div>
+      <div class="topic">Декораторы</div>
+      <div class="qtitle">Как сделать декоратор с аргументами? Напишите пример.</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(22)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-22">
+    <p>Нужен ещё один уровень функции: <b>фабрика декораторов → декоратор → wrapper</b>.</p>
+<pre><code>from functools import wraps
+
+def repeat(times):          # 1. принимает аргументы декоратора
+    def decorator(func):    # 2. принимает функцию
+        @wraps(func)
+        def wrapper(*args, **kwargs):  # 3. вызывается вместо функции
+            result = None
+            for _ in range(times):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+
+@repeat(3)
+def hello(name):
+    print(f"Hi, {name}")</code></pre>
+<p><code>@repeat(3)</code> эквивалентно <code>hello = repeat(3)(hello)</code>.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>три уровня</li><li>внешняя функция получает параметры</li><li>средняя получает func</li><li>@decorator(arg) = decorator(arg)(func)</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Можно ли сделать декоратор, который работает и как <code>@deco</code>, и как <code>@deco(...)</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Да, но понадобится различать режимы вызова/аргументы; реализация заметно сложнее и требует аккуратного API.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="22" data-score="0">0 — мимо</button>
+    <button class="score" data-q="22" data-score="1">1 — частично</button>
+    <button class="score" data-q="22" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q23" data-topic="Декораторы">
+  <div class="qhead">
+    <div class="num">23</div>
+    <div>
+      <div class="topic">Декораторы</div>
+      <div class="qtitle">Зачем используется functools.wraps внутри декоратора?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(23)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-23">
+    <p>Без <code>@wraps(func)</code> наружу возвращается <code>wrapper</code>, поэтому метаданные исходной функции теряются/заменяются метаданными wrapper.</p>
+<p><code>functools.wraps</code> переносит важные атрибуты исходной функции и добавляет <code>__wrapped__</code>:</p>
+<ul><li><code>__name__</code>, <code>__qualname__</code>;</li><li><code>__doc__</code>;</li><li><code>__annotations__</code> и другие метаданные;</li><li><code>__wrapped__</code> для introspection.</li></ul>
+<pre><code>@wraps(func)
+def wrapper(*args, **kwargs):
+    return func(*args, **kwargs)</code></pre>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>сохраняет metadata</li><li>__name__</li><li>__doc__</li><li>__wrapped__</li><li>полезно для introspection/debugging</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Что будет с <code>decorated.__name__</code> без <code>wraps</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Обычно оно будет <code>'wrapper'</code>, а не именем исходной функции.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="23" data-score="0">0 — мимо</button>
+    <button class="score" data-q="23" data-score="1">1 — частично</button>
+    <button class="score" data-q="23" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q24" data-topic="Декораторы">
+  <div class="qhead">
+    <div class="num">24</div>
+    <div>
+      <div class="topic">Декораторы</div>
+      <div class="qtitle">Как применить несколько декораторов к одной функции? В каком порядке они применяются?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(24)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-24">
+    <pre><code>@A
+@B
+def f():
+    ...</code></pre>
+<p>Это примерно:</p><pre><code>f = A(B(f))</code></pre>
+<p>То есть при <b>декорировании</b> нижний <code>@B</code> применяется к исходной функции первым, затем результат оборачивается <code>A</code>.</p>
+<p>При обычном <b>вызове</b> внешняя обёртка <code>A</code> получает управление первой, внутри неё вызывается <code>B</code>, а затем исходная <code>f</code>.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>можно ставить несколько @</li><li>f = A(B(f))</li><li>декорирование снизу вверх</li><li>вызов снаружи внутрь</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Если оба декоратора печатают before/after, какой порядок будет?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Для A(B(f)): <code>A before → B before → f → B after → A after</code>.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="24" data-score="0">0 — мимо</button>
+    <button class="score" data-q="24" data-score="1">1 — частично</button>
+    <button class="score" data-q="24" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q25" data-topic="Декораторы / ООП">
+  <div class="qhead">
+    <div class="num">25</div>
+    <div>
+      <div class="topic">Декораторы / ООП</div>
+      <div class="qtitle">Как работает декоратор @property и зачем он нужен?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(25)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-25">
+    <p><code>@property</code> позволяет обращаться к методу как к атрибуту и при необходимости контролировать чтение/запись.</p>
+<pre><code>class User:
+    def __init__(self, age):
+        self.age = age
+
+    @property
+    def age(self):
+        return self._age
+
+    @age.setter
+    def age(self, value):
+        if value < 0:
+            raise ValueError("age must be >= 0")
+        self._age = value
+
+u = User(20)
+print(u.age)  # без ()
+u.age = 21</code></pre>
+<p>Нужен для валидации, вычисляемых атрибутов и сохранения удобного публичного API. Под капотом <code>property</code> работает через descriptor protocol.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>метод выглядит как атрибут</li><li>getter</li><li>setter</li><li>валидация/вычисляемое значение</li><li>descriptor</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему внутри setter часто пишут <code>self._age</code>, а не <code>self.age</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p><code>self.age = value</code> снова вызовет тот же setter и приведёт к бесконечной рекурсии. Поэтому значение обычно хранится под другим внутренним именем.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="25" data-score="0">0 — мимо</button>
+    <button class="score" data-q="25" data-score="1">1 — частично</button>
+    <button class="score" data-q="25" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q26" data-topic="Dunder">
+  <div class="qhead">
+    <div class="num">26</div>
+    <div>
+      <div class="topic">Dunder</div>
+      <div class="qtitle">Что делает __repr__ и чем он отличается от __str__?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(26)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-26">
+    <p><code>__str__</code> — удобное человекочитаемое представление объекта. Его использует, например, <code>str(obj)</code> и <code>print(obj)</code>.</p>
+<p><code>__repr__</code> — техническое/разработческое представление, полезное в отладке и интерактивной консоли. Хороший <code>repr</code> старается быть однозначным; иногда он похож на код создания объекта.</p>
+<pre><code>class Point:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+    def __repr__(self):
+        return f"Point({self.x!r}, {self.y!r})"
+
+    def __str__(self):
+        return f"({self.x}, {self.y})"</code></pre>
+<div class="note">Если <code>__str__</code> не определён, Python может использовать <code>__repr__</code> как fallback для строкового представления.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>__str__ для пользователя</li><li>__repr__ для разработчика/debug</li><li>repr желательно однозначный</li><li>print использует str</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему в <code>repr</code> часто используют <code>!r</code> в f-string?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Чтобы вложенные значения форматировались через их <code>repr()</code>, сохраняя кавычки и более техническое представление.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="26" data-score="0">0 — мимо</button>
+    <button class="score" data-q="26" data-score="1">1 — частично</button>
+    <button class="score" data-q="26" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q27" data-topic="Dunder">
+  <div class="qhead">
+    <div class="num">27</div>
+    <div>
+      <div class="topic">Dunder</div>
+      <div class="qtitle">Как реализовать __eq__ так, чтобы сравнение работало корректно?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(27)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-27">
+    <pre><code>class Point:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+    def __eq__(self, other):
+        if not isinstance(other, Point):
+            return NotImplemented
+        return (self.x, self.y) == (other.x, other.y)</code></pre>
+<p>Хорошая практика:</p><ul><li>сравнивать именно те поля, которые определяют логическое равенство;</li><li>для неподдерживаемого типа возвращать <code>NotImplemented</code>, а не безусловно <code>False</code>;</li><li>помнить про контракт с <code>__hash__</code>: равные хэшируемые объекты должны иметь одинаковый хэш.</li></ul>
+<div class="warn">Если в пользовательском классе переопределить <code>__eq__</code>, но не определить совместимый <code>__hash__</code>, экземпляры обычно становятся нехэшируемыми — это безопаснее, чем неверный hash.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>сравнение значимых полей</li><li>проверка типа</li><li>NotImplemented для чужих типов</li><li>контракт eq/hash</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему <code>return NotImplemented</code> лучше, чем <code>return False</code> для неизвестного типа?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Это позволяет Python попробовать отражённое сравнение другой стороны и корректно реализует протокол rich comparison.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="27" data-score="0">0 — мимо</button>
+    <button class="score" data-q="27" data-score="1">1 — частично</button>
+    <button class="score" data-q="27" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q28" data-topic="Dunder">
+  <div class="qhead">
+    <div class="num">28</div>
+    <div>
+      <div class="topic">Dunder</div>
+      <div class="qtitle">Что происходит при вызове len(obj) и какой метод отвечает за это?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(28)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-28">
+    <p>Для пользовательского объекта <code>len(obj)</code> использует специальный метод <code>__len__</code>, определённый на его <b>типе</b>.</p>
+<pre><code>class Basket:
+    def __init__(self, items):
+        self.items = items
+
+    def __len__(self):
+        return len(self.items)
+
+b = Basket([1, 2, 3])
+print(len(b))  # 3</code></pre>
+<p><code>__len__</code> должен возвращать неотрицательное целое (index-compatible) значение.</p>
+<div class="note">Нюанс «под капотом»: неявный lookup специальных методов вроде <code>__len__</code> идёт через тип, а не через произвольный атрибут экземпляра.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>__len__</li><li>возвращает длину</li><li>неотрицательное целое</li><li>special methods lookup по типу</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Влияет ли <code>__len__</code> на <code>bool(obj)</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Да, если <code>__bool__</code> не определён: объект с <code>__len__() == 0</code> считается ложным, с ненулевой длиной — истинным.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="28" data-score="0">0 — мимо</button>
+    <button class="score" data-q="28" data-score="1">1 — частично</button>
+    <button class="score" data-q="28" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q29" data-topic="Dunder / Iteration">
+  <div class="qhead">
+    <div class="num">29</div>
+    <div>
+      <div class="topic">Dunder / Iteration</div>
+      <div class="qtitle">Как заставить ваш класс работать с in и for ... in obj:?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(29)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-29">
+    <p>Для <code>for</code> объект должен быть <b>итерируемым</b>: обычно реализуют <code>__iter__</code>, который возвращает итератор.</p>
+<pre><code>class Team:
+    def __init__(self, members):
+        self.members = members
+
+    def __iter__(self):
+        return iter(self.members)
+
+    def __contains__(self, item):
+        return item in self.members</code></pre>
+<p><code>for x in team</code> вызывает <code>iter(team)</code> → <code>team.__iter__()</code>.</p>
+<p><code>x in team</code> сначала пытается использовать <code>__contains__</code>. Если его нет, Python может проверить принадлежность через итерацию; есть и старый sequence fallback через <code>__getitem__</code>.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>__iter__ для for</li><li>итератор реализует __next__</li><li>__contains__ для in</li><li>in может fallback к итерации</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Достаточно ли одного <code>__iter__</code>, чтобы <code>in</code> работал?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Обычно да: если <code>__contains__</code> отсутствует, membership test может пройти по итератору и сравнить элементы.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="29" data-score="0">0 — мимо</button>
+    <button class="score" data-q="29" data-score="1">1 — частично</button>
+    <button class="score" data-q="29" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q30" data-topic="Dunder / создание объекта">
+  <div class="qhead">
+    <div class="num">30</div>
+    <div>
+      <div class="topic">Dunder / создание объекта</div>
+      <div class="qtitle">В чём разница между __new__ и __init__?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(30)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-30">
+    <table><tr><th></th><th><code>__new__</code></th><th><code>__init__</code></th></tr>
+<tr><td>Роль</td><td><b>создаёт</b> и возвращает объект</td><td><b>инициализирует</b> уже созданный объект</td></tr>
+<tr><td>Первый аргумент</td><td><code>cls</code></td><td><code>self</code></td></tr>
+<tr><td>Возврат</td><td>новый объект</td><td>обязан вернуть <code>None</code></td></tr>
+<tr><td>Когда переопределяют</td><td>редко; immutable-типы, singleton/factory, metaclass</td><td>постоянно; настройка состояния экземпляра</td></tr></table>
+<pre><code>class A:
+    def __new__(cls, *args, **kwargs):
+        obj = super().__new__(cls)
+        return obj
+
+    def __init__(self, x):
+        self.x = x</code></pre>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>__new__ создаёт</li><li>__new__ получает cls и возвращает объект</li><li>__init__ настраивает self</li><li>__init__ возвращает None</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему <code>__new__</code> важнее при наследовании от <code>tuple</code>/<code>str</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Immutable-объект уже должен получить своё значение на стадии создания; после создания его внутреннее значение нельзя изменить обычной инициализацией.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="30" data-score="0">0 — мимо</button>
+    <button class="score" data-q="30" data-score="1">1 — частично</button>
+    <button class="score" data-q="30" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q31" data-topic="Dunder / создание объекта">
+  <div class="qhead">
+    <div class="num">31</div>
+    <div>
+      <div class="topic">Dunder / создание объекта</div>
+      <div class="qtitle">Когда вызывается __new__, а когда — __init__?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(31)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-31">
+    <p>При обычном вызове класса <code>obj = C(...)</code> порядок такой:</p>
+<ol><li><code>C.__new__(C, ...)</code> — создаёт/возвращает объект;</li><li>если возвращён объект является экземпляром <code>C</code> (или подходящего подтипа), вызывается <code>__init__(obj, ...)</code>;</li><li>готовый объект возвращается вызывающему коду.</li></ol>
+<div class="warn">Если <code>__new__</code> вернёт объект другого несвязанного типа, <code>__init__</code> исходного класса не вызывается.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>сначала __new__</li><li>потом __init__</li><li>__init__ только для подходящего созданного экземпляра</li><li>после init объект возвращается</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Что будет, если <code>__init__</code> вернёт число?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Python выбросит <code>TypeError</code>: <code>__init__</code> должен возвращать <code>None</code>.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="31" data-score="0">0 — мимо</button>
+    <button class="score" data-q="31" data-score="1">1 — частично</button>
+    <button class="score" data-q="31" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q32" data-topic="Пакеты / импорт">
+  <div class="qhead">
+    <div class="num">32</div>
+    <div>
+      <div class="topic">Пакеты / импорт</div>
+      <div class="qtitle">Что делает файл __init__.py в папке модулей?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(32)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-32">
+    <p>В <b>regular package</b> файл <code>__init__.py</code> обозначает пакет и <b>выполняется при импорте пакета</b>.</p>
+<p>В нём можно:</p><ul><li>инициализировать пакет;</li><li>экспортировать удобный публичный API: <code>from .core import Foo</code>;</li><li>задавать <code>__all__</code>, версию и другие package-level имена.</li></ul>
+<div class="note">Начиная с Python 3.3 существуют <b>namespace packages</b>, которые могут работать без <code>__init__.py</code>. Поэтому фраза «без него папка вообще никогда не пакет» — устаревшее упрощение.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>regular package</li><li>выполняется при import</li><li>может формировать публичный API</li><li>namespace package может быть без __init__.py</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Стоит ли выполнять тяжёлую работу в <code>__init__.py</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Обычно нет: импорт должен оставаться предсказуемым и дешёвым; тяжёлые вычисления и побочные эффекты усложняют запуск и тестирование.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="32" data-score="0">0 — мимо</button>
+    <button class="score" data-q="32" data-score="1">1 — частично</button>
+    <button class="score" data-q="32" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q33" data-topic="ABC">
+  <div class="qhead">
+    <div class="num">33</div>
+    <div>
+      <div class="topic">ABC</div>
+      <div class="qtitle">Что такое ABC и @abstractmethod? Зачем они нужны?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(33)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-33">
+    <p><code>ABC</code> (Abstract Base Class) помогает задать <b>контракт базового класса</b>. <code>@abstractmethod</code> отмечает методы/свойства, которые конкретный подкласс обязан реализовать, чтобы его можно было инстанцировать.</p>
+<pre><code>from abc import ABC, abstractmethod
+
+class Storage(ABC):
+    @abstractmethod
+    def save(self, item) -> None:
+        ...
+
+class FileStorage(Storage):
+    def save(self, item) -> None:
+        print("saved", item)
+
+# Storage()      -> TypeError
+# FileStorage()  -> OK</code></pre>
+<p>Нужны для явного интерфейса, раннего обнаружения неполной реализации и общего полиморфного API.</p>
+<div class="note">Абстрактный метод даже может содержать реализацию; важен сам статус abstract, пока подкласс его не переопределит.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>abc.ABC</li><li>@abstractmethod</li><li>нельзя создать класс с не реализованными abstract methods</li><li>контракт для подклассов</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Можно ли создать экземпляр класса, который наследуется от ABC, но не имеет abstractmethod?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Да. Само наследование от <code>ABC</code> не запрещает инстанцирование; запрет возникает, когда остаются нереализованные абстрактные методы/свойства.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="33" data-score="0">0 — мимо</button>
+    <button class="score" data-q="33" data-score="1">1 — частично</button>
+    <button class="score" data-q="33" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q34" data-topic="Итераторы / генераторы">
+  <div class="qhead">
+    <div class="num">34</div>
+    <div>
+      <div class="topic">Итераторы / генераторы</div>
+      <div class="qtitle">Чем отличается итератор от итерируемого объекта?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(34)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-34">
+    <p><b>Iterable (итерируемый объект)</b> — объект, из которого можно получить итератор через <code>iter(obj)</code>. Обычно он реализует <code>__iter__</code>.</p>
+<p><b>Iterator (итератор)</b> — объект, который хранит состояние обхода и выдаёт следующий элемент через <code>__next__</code>. Его <code>__iter__()</code> обычно возвращает <code>self</code>.</p>
+<pre><code>data = [10, 20, 30]  # iterable
+it = iter(data)       # iterator
+next(it)              # 10
+next(it)              # 20</code></pre>
+<p>Список можно обходить много раз, создавая новые итераторы. Конкретный итератор обычно одноразовый: после исчерпания выдаёт <code>StopIteration</code>.</p>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>iterable → iter()</li><li>iterator → next()</li><li>__iter__ и __next__</li><li>итератор хранит состояние</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Является ли генератор итератором?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Да. Объект generator реализует iterator protocol: его можно передавать в <code>next()</code>, а <code>iter(generator)</code> возвращает его же.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="34" data-score="0">0 — мимо</button>
+    <button class="score" data-q="34" data-score="1">1 — частично</button>
+    <button class="score" data-q="34" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q35" data-topic="Итераторы / генераторы">
+  <div class="qhead">
+    <div class="num">35</div>
+    <div>
+      <div class="topic">Итераторы / генераторы</div>
+      <div class="qtitle">Что такое генератор и как он экономит память?</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(35)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-35">
+    <p><b>Генератор</b> — специальный итератор, который обычно создаётся функцией с <code>yield</code> или generator expression.</p>
+<pre><code>def squares(n):
+    for i in range(n):
+        yield i * i
+
+g = squares(1_000_000)</code></pre>
+<p>При вызове генераторной функции тело не выполняется целиком: создаётся generator object. Он выполняется лениво до очередного <code>yield</code>, отдаёт значение и сохраняет своё состояние до следующего <code>next()</code>.</p>
+<p>Экономия памяти в том, что обычно <b>не создаётся весь результат сразу</b>; хранится состояние вычисления и текущие локальные ссылки.</p>
+<div class="note">Не надо обещать «всегда O(1) памяти»: генератор может сам хранить растущую структуру в локальной переменной. Точнее — он не обязан материализовать всю последовательность результатов.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>yield</li><li>ленивое вычисление</li><li>generator — iterator</li><li>сохраняет состояние между yield</li><li>не материализует весь результат</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Что делает <code>yield from iterable</code>?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Делегирует выдачу значений вложенному iterable/iterator: значения из него передаются наружу через текущий генератор; для подгенераторов протокол также передаёт send/throw и итоговое return-значение.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="35" data-score="0">0 — мимо</button>
+    <button class="score" data-q="35" data-score="1">1 — частично</button>
+    <button class="score" data-q="35" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q36" data-topic="Итераторы / генераторы">
+  <div class="qhead">
+    <div class="num">36</div>
+    <div>
+      <div class="topic">Итераторы / генераторы</div>
+      <div class="qtitle">Что произойдёт при выполнении кода с gen()[1]?</div>
+      <pre class="question-code"><code>def gen():
+    yield from [1, 2, 3]
+
+print(gen()[1])</code></pre>
+    </div>
+    <button class="reveal" onclick="toggleAnswer(36)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-36">
+    <p>Будет исключение:</p>
+<pre><code>TypeError: 'generator' object is not subscriptable</code></pre>
+<p><code>gen()</code> возвращает <b>generator object</b>. У него есть протокол итератора (<code>__iter__</code>, <code>__next__</code>), но нет индексного доступа <code>__getitem__</code>, поэтому <code>[1]</code> неприменим.</p>
+<p>Варианты получить второй элемент:</p>
+<pre><code>list(gen())[1]
+
+# или лениво
+it = gen()
+next(it)      # 1
+second = next(it)  # 2</code></pre>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>TypeError</li><li>generator not subscriptable</li><li>gen() возвращает генератор</li><li>индексации нет</li><li>можно list() или next()</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Почему <code>yield from [1, 2, 3]</code> сам по себе корректен?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Потому что список — iterable; <code>yield from</code> последовательно делегирует наружу значения 1, 2 и 3.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="36" data-score="0">0 — мимо</button>
+    <button class="score" data-q="36" data-score="1">1 — частично</button>
+    <button class="score" data-q="36" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<section class="card" id="q37" data-topic="Практика">
+  <div class="qhead">
+    <div class="num">P</div>
+    <div>
+      <div class="topic">Практика</div>
+      <div class="qtitle">Напишите класс ProfileBlock: контекстный менеджер, замер времени блока и статистика count/min/max/avg.</div>
+      
+    </div>
+    <button class="reveal" onclick="toggleAnswer(37)">Показать ответ</button>
+  </div>
+  <div class="answer" id="answer-37">
+    <p>Один из аккуратных вариантов:</p>
+<pre><code>import time
+from types import TracebackType
+
+class ProfileBlock:
+    def __init__(self, name: str):
+        self.name = name
+        self._start: float | None = None
+        self._durations: list[float] = []
+
+    def __enter__(self) -> "ProfileBlock":
+        if self._start is not None:
+            raise RuntimeError("ProfileBlock already started")
+        self._start = time.perf_counter()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> bool:
+        if self._start is None:
+            raise RuntimeError("ProfileBlock not started")
+
+        self._durations.append(time.perf_counter() - self._start)
+        self._start = None
+
+        # False => не подавляем исключение из блока with
+        return False
+
+    def get_stats(self) -> dict[str, int | float | None]:
+        if not self._durations:
+            return {
+                "count": 0,
+                "min": None,
+                "max": None,
+                "avg": None,
+            }
+
+        return {
+            "count": len(self._durations),
+            "min": min(self._durations),
+            "max": max(self._durations),
+            "avg": sum(self._durations) / len(self._durations),
+        }
+
+block = ProfileBlock("math section")
+with block:
+    time.sleep(0.1)
+    result = 2 ** 10
+
+print(block.get_stats())</code></pre>
+<p>Если один и тот же объект <code>block</code> использовать в нескольких <code>with</code>, список <code>_durations</code> накопит статистику всех запусков.</p>
+<div class="note"><b>Что важно проговорить:</b> <code>__enter__</code> возвращает объект после <code>as</code>; <code>__exit__</code> вызывается и при нормальном выходе, и при исключении; <code>return False</code> не подавляет исключение.</div>
+    <div class="checker">
+      <div>
+        <h4>✅ Что должен услышать проверяющий</h4>
+        <ul><li>__enter__ запускает perf_counter</li><li>__exit__ фиксирует duration</li><li>возвращаем self</li><li>статистика count/min/max/avg</li><li>return False не подавляет исключение</li></ul>
+      </div>
+      <div>
+        <h4>🎯 Допвопрос</h4>
+        <p>Что получает <code>__exit__</code> при исключении внутри with?</p>
+        <details><summary>Ответ на допвопрос</summary><p>Три аргумента про исключение: тип, объект исключения и traceback. Если исключения не было — все три равны <code>None</code>. Истинное значение из <code>__exit__</code> подавляет исключение, ложное — пропускает дальше.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="scoreline">
+    <span>Оценка друга:</span>
+    <button class="score" data-q="37" data-score="0">0 — мимо</button>
+    <button class="score" data-q="37" data-score="1">1 — частично</button>
+    <button class="score" data-q="37" data-score="2">2 — уверенно</button>
+  </div>
+</section>
+<div class="footer">
+  <p>Для собеседования важнее объяснить идею своими словами, чем воспроизвести формулировку дословно.</p>
+  <p class="small">Справка для актуальных деталей: официальная документация Python — venv, data model, typing, abc, import system, functools.</p>
+</div>
+</div>
+<script>
+function toggleAnswer(i) {
+  const a=document.getElementById('answer-'+i); const btn=document.querySelector('#q'+i+' .reveal');
+  a.classList.toggle('open'); btn.textContent=a.classList.contains('open')?'Скрыть ответ':'Показать ответ';
+}
+function showAll() { document.querySelectorAll('.answer').forEach(x=>x.classList.add('open')); document.querySelectorAll('.reveal').forEach(x=>x.textContent='Скрыть ответ'); }
+function hideAll() { document.querySelectorAll('.answer').forEach(x=>x.classList.remove('open')); document.querySelectorAll('.reveal').forEach(x=>x.textContent='Показать ответ'); }
+function randomQuestion() {
+  hideAll(); const cards=[...document.querySelectorAll('.card')]; const card=cards[Math.floor(Math.random()*cards.length)];
+  card.scrollIntoView({behavior:'smooth',block:'center'}); card.classList.add('flash'); setTimeout(()=>card.classList.remove('flash'),1000);
+}
+const STORAGE_KEY='python-ds-start-scores-v1';
+const scores=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+function renderScores() {
+  document.querySelectorAll('.score').forEach(btn=>{ const q=btn.dataset.q; btn.classList.toggle('active',String(scores[q])===btn.dataset.score); });
+  const sum=Object.values(scores).reduce((a,b)=>a+Number(b),0); document.getElementById('scorebox').textContent=`Баллы: ${sum} / 74`;
+}
+document.querySelectorAll('.score').forEach(btn=>btn.addEventListener('click',()=>{ scores[btn.dataset.q]=Number(btn.dataset.score); localStorage.setItem(STORAGE_KEY,JSON.stringify(scores)); renderScores(); }));
+function resetScores() { if(!confirm('Сбросить все оценки?')) return; Object.keys(scores).forEach(k=>delete scores[k]); localStorage.removeItem(STORAGE_KEY); renderScores(); }
+renderScores();
+</script>
+</body>
+</html>

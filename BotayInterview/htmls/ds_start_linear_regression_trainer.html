@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS Start — линейная регрессия: тренажёр по 16 вопросам</title>
+<style>
+:root {
+  --bg:#0f1117; --panel:#171a23; --panel2:#202531; --text:#eef1f6; --muted:#a9b2c3;
+  --line:#303747; --accent:#7aa2ff; --good:#7bd88f; --warn:#f0c674; --bad:#ff7b88;
+  --shadow:0 10px 30px rgba(0,0,0,.24);
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.58;
+}
+.wrap { max-width:1080px; margin:auto; padding:28px 18px 80px; }
+.hero {
+  background:linear-gradient(135deg,#1b2030,#151925); border:1px solid var(--line);
+  border-radius:24px; padding:30px; box-shadow:var(--shadow); margin-bottom:18px;
+}
+h1 { margin:0 0 8px; font-size:clamp(28px,5vw,46px); line-height:1.12; }
+.hero p { color:var(--muted); max-width:800px; margin:8px 0; }
+.toolbar {
+  position:sticky; top:0; z-index:20; display:flex; gap:8px; flex-wrap:wrap;
+  padding:10px 0 12px; background:linear-gradient(var(--bg) 70%,transparent);
+}
+button, .jump {
+  border:1px solid var(--line); background:var(--panel2); color:var(--text);
+  border-radius:10px; padding:9px 12px; cursor:pointer; font-weight:700;
+}
+button:hover, .jump:hover { border-color:var(--accent); }
+.scorebox {
+  margin-left:auto; padding:9px 14px; background:#111620; border:1px solid var(--line);
+  border-radius:10px; font-weight:800;
+}
+.nav {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(44px,1fr)); gap:7px;
+  margin:14px 0 22px;
+}
+.jump { text-align:center; text-decoration:none; color:var(--muted); padding:7px; }
+.card {
+  background:var(--panel); border:1px solid var(--line); border-radius:18px;
+  margin:14px 0; overflow:hidden; box-shadow:var(--shadow);
+}
+.card.flash { outline:3px solid var(--accent); }
+.qhead {
+  display:grid; grid-template-columns:46px 1fr auto; gap:12px; align-items:center;
+  padding:18px;
+}
+.num {
+  width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:#232b3b;color:var(--accent);font-weight:900;font-size:18px;
+}
+.qtitle { font-weight:850; font-size:18px; }
+.reveal { min-width:145px; }
+.answer {
+  display:none; border-top:1px solid var(--line); padding:20px 22px 8px;
+  background:#131720;
+}
+.answer.open { display:block; }
+.answer h4 { margin:18px 0 4px; }
+.answer ul { padding-left:22px; }
+code {
+  background:#252b37; border:1px solid #343c4c; border-radius:6px;
+  padding:1px 5px; color:#dbe7ff;
+}
+.formula {
+  font-family:"Times New Roman",serif; font-size:20px; text-align:center;
+  margin:14px 0; padding:12px; background:#1d2230; border-radius:12px;
+  border:1px solid var(--line); overflow-x:auto;
+}
+.note,.warn {
+  margin:14px 0; padding:12px 14px; border-radius:10px; border-left:4px solid var(--accent);
+  background:#1b2230;
+}
+.warn { border-left-color:var(--warn); background:#282316; }
+.checker {
+  display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px;
+}
+.checker > div {
+  background:#1b202c; border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+}
+.checker h4 { margin:0 0 6px; }
+.scoreline {
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  padding:12px 18px 16px; border-top:1px solid var(--line);
+}
+.scoreline span { color:var(--muted); font-weight:700; margin-right:4px; }
+.score { font-size:13px; padding:7px 9px; }
+.score.active[data-score="0"] { border-color:var(--bad); color:var(--bad); }
+.score.active[data-score="1"] { border-color:var(--warn); color:var(--warn); }
+.score.active[data-score="2"] { border-color:var(--good); color:var(--good); }
+.legend {
+  background:#151923;border:1px solid var(--line);border-radius:16px;padding:18px;margin:20px 0;
+}
+.small { color:var(--muted); font-size:14px; }
+.footer { color:var(--muted); text-align:center; margin-top:35px; }
+@media (max-width:720px) {
+  .qhead { grid-template-columns:42px 1fr; }
+  .reveal { grid-column:1 / -1; width:100%; }
+  .checker { grid-template-columns:1fr; }
+  .scorebox { margin-left:0; width:100%; text-align:center; }
+}
+@media print {
+  body { background:white; color:black; }
+  .toolbar,.nav,.scoreline,.reveal { display:none !important; }
+  .hero,.card { box-shadow:none; border:1px solid #bbb; background:white; }
+  .answer { display:block !important; background:white; }
+  .checker > div,.formula,.note,.warn { background:white; color:black; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>DS Start · Линейная регрессия</h1>
+    <p><b>Тренажёр по 16 вопросам</b> из блока «Pandas, Numpy, задача регрессии и линейная модель».</p>
+    <p>Режим: сначала отвечаешь вслух без подсказки → друг открывает эталон → проверяет ключевые пункты →
+       задаёт допвопрос → ставит 0/1/2. Баллы сохраняются в браузере.</p>
+  </header>
+
+  <div class="toolbar">
+    <button onclick="hideAll()">Скрыть всё</button>
+    <button onclick="showAll()">Показать всё</button>
+    <button onclick="randomQuestion()">🎲 Случайный вопрос</button>
+    <button onclick="resetScores()">Сбросить баллы</button>
+    <div class="scorebox" id="scorebox">Баллы: 0 / 32</div>
+  </div>
+
+  <div class="nav">
+    <a class="jump" href="#q1">1</a><a class="jump" href="#q2">2</a><a class="jump" href="#q3">3</a><a class="jump" href="#q4">4</a><a class="jump" href="#q5">5</a><a class="jump" href="#q6">6</a><a class="jump" href="#q7">7</a><a class="jump" href="#q8">8</a><a class="jump" href="#q9">9</a><a class="jump" href="#q10">10</a><a class="jump" href="#q11">11</a><a class="jump" href="#q12">12</a><a class="jump" href="#q13">13</a><a class="jump" href="#q14">14</a><a class="jump" href="#q15">15</a><a class="jump" href="#q16">16</a>
+  </div>
+
+  <div class="legend">
+    <b>Как оценивать:</b>
+    <span class="small">0 — ответ неверный / не начат · 1 — идея есть, но пропущены важные пункты ·
+    2 — уверенный ответ + выдержан допвопрос.</span>
+  </div>
+
+  
+    <section class="card" id="q1">
+      <div class="qhead">
+        <div class="num">1</div>
+        <div class="qtitle">Что такое задача регрессии?</div>
+        <button class="reveal" onclick="toggleAnswer(1)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-1">
+        
+        <p><b>Регрессия</b> — задача обучения с учителем, где целевая переменная <code>y</code> является числом
+        (обычно непрерывным), а модель по признакам <code>X</code> предсказывает численное значение.</p>
+        <p>Примеры: цена квартиры, стоимость автомобиля, температура, время доставки, спрос.</p>
+        <p>Формально мы строим функцию <code>ŷ = f(X)</code> и хотим, чтобы предсказания <code>ŷ</code>
+        были как можно ближе к истинным <code>y</code> по выбранной функции потерь/метрике.</p>
+        <div class="note"><b>Не путать:</b> классификация предсказывает класс/категорию, регрессия — число.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>обучение с учителем</li><li>таргет — численное значение</li><li>ŷ = f(X)</li><li>пример задачи</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Чем регрессия отличается от классификации? Может ли y быть целым числом?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="1" data-score="0">0 — мимо</button>
+        <button class="score" data-q="1" data-score="1">1 — частично</button>
+        <button class="score" data-q="1" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q2">
+      <div class="qhead">
+        <div class="num">2</div>
+        <div class="qtitle">Что такое корреляция?</div>
+        <button class="reveal" onclick="toggleAnswer(2)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-2">
+        
+        <p><b>Корреляция</b> показывает силу и направление статистической связи между переменными.
+        Чаще всего под ней имеют в виду коэффициент Пирсона:</p>
+        <div class="formula">r = cov(X, Y) / (σ<sub>X</sub> · σ<sub>Y</sub>)</div>
+        <p><code>r ∈ [-1, 1]</code>: около <code>1</code> — сильная положительная линейная связь,
+        около <code>-1</code> — сильная отрицательная, около <code>0</code> — нет выраженной <i>линейной</i> связи.</p>
+        <p>Корреляция безразмерна и не зависит от единиц измерения.</p>
+        <div class="warn"><b>Важно:</b> корреляция не означает причинность. И r≈0 не гарантирует отсутствие нелинейной связи.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>сила и направление связи</li><li>диапазон [-1, 1]</li><li>безразмерна</li><li>не равно причинности</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Может ли между X и Y быть сильная зависимость при корреляции Пирсона около нуля?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="2" data-score="0">0 — мимо</button>
+        <button class="score" data-q="2" data-score="1">1 — частично</button>
+        <button class="score" data-q="2" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q3">
+      <div class="qhead">
+        <div class="num">3</div>
+        <div class="qtitle">Что такое ковариация?</div>
+        <button class="reveal" onclick="toggleAnswer(3)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-3">
+        
+        <p><b>Ковариация</b> показывает, как две величины изменяются совместно:</p>
+        <div class="formula">cov(X, Y) = E[(X − E[X])(Y − E[Y])]</div>
+        <p>Если ковариация положительная, переменные в среднем растут вместе; если отрицательная —
+        одна растёт, когда другая уменьшается.</p>
+        <p>Главный минус: величина ковариации зависит от масштаба и единиц измерения, поэтому
+        по её абсолютному значению трудно судить о «силе» связи.</p>
+        <p><b>Корреляция</b> — это нормированная ковариация.</p>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>совместное изменение</li><li>знак ковариации</li><li>зависит от масштаба</li><li>корреляция = нормированная ковариация</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Почему ковариацию неудобно сравнивать для разных пар признаков?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="3" data-score="0">0 — мимо</button>
+        <button class="score" data-q="3" data-score="1">1 — частично</button>
+        <button class="score" data-q="3" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q4">
+      <div class="qhead">
+        <div class="num">4</div>
+        <div class="qtitle">Что такое линейная регрессия и что происходит в LinearRegression.fit()?</div>
+        <button class="reveal" onclick="toggleAnswer(4)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-4">
+        
+        <p>Линейная регрессия предполагает, что предсказание — линейная комбинация признаков:</p>
+        <div class="formula">ŷ = w₁x₁ + w₂x₂ + … + wₚxₚ + b</div>
+        <p>Обучение означает подобрать коэффициенты <code>w</code> и свободный член <code>b</code>,
+        минимизирующие сумму квадратов ошибок.</p>
+        <p><b>В sklearn это не градиентный спуск.</b> Для обычных плотных данных
+        <code>LinearRegression.fit()</code> решает задачу наименьших квадратов численным
+        линейно-алгебраическим методом (<code>scipy.linalg.lstsq</code>).
+        Для sparse-матриц используется <code>scipy.sparse.linalg.lsqr</code>.
+        При <code>positive=True</code> применяется non-negative least squares (NNLS).</p>
+        <p>Практически <code>fit()</code>: валидирует данные → при необходимости центрирует их для intercept →
+        решает least-squares задачу → сохраняет <code>coef_</code> и <code>intercept_</code>.</p>
+        <div class="note"><b>Собеседовательный нюанс:</b> формулу
+        <code>w=(XᵀX)⁻¹Xᵀy</code> полезно знать, но библиотеки обычно не обязаны буквально считать обратную
+        матрицу: устойчивее решать least-squares через факторизации/SVD.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>ŷ = Xw + b</li><li>минимизация квадратов ошибок</li><li>не градиентный спуск</li><li>lstsq / least squares</li><li>coef_ и intercept_</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Почему явное вычисление (XᵀX)⁻¹ обычно хуже, чем lstsq/SVD?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="4" data-score="0">0 — мимо</button>
+        <button class="score" data-q="4" data-score="1">1 — частично</button>
+        <button class="score" data-q="4" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q5">
+      <div class="qhead">
+        <div class="num">5</div>
+        <div class="qtitle">Как устроен МНК?</div>
+        <button class="reveal" onclick="toggleAnswer(5)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-5">
+        
+        <p><b>МНК — метод наименьших квадратов.</b> Он выбирает параметры линейной модели так,
+        чтобы сумма квадратов остатков была минимальна.</p>
+        <div class="formula">min<sub>w</sub> ‖Xw − y‖²₂ = min Σ(yᵢ − ŷᵢ)²</div>
+        <p>Остаток: <code>e = y − Xw</code>. В точке минимума градиент по <code>w</code> равен нулю:</p>
+        <div class="formula">XᵀXw = Xᵀy</div>
+        <p>Это <b>нормальные уравнения</b>. Если <code>XᵀX</code> обратима, формально:</p>
+        <div class="formula">w = (XᵀX)⁻¹Xᵀy</div>
+        <p>Геометрически <code>Xw</code> — ортогональная проекция <code>y</code> на пространство,
+        натянутое на столбцы <code>X</code>, а остаток ортогонален этим столбцам:
+        <code>Xᵀ(y − Xw)=0</code>.</p>
+        <div class="warn"><b>Если матрица вырождена/плохо обусловлена:</b> лучше использовать QR/SVD,
+        псевдообратную матрицу или регуляризацию, а не явно обращать <code>XᵀX</code>.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>минимизируем сумму квадратов остатков</li><li>XᵀXw = Xᵀy</li><li>геометрическая проекция</li><li>проблема вырожденности/обусловленности</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Что происходит при сильной мультиколлинеарности?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="5" data-score="0">0 — мимо</button>
+        <button class="score" data-q="5" data-score="1">1 — частично</button>
+        <button class="score" data-q="5" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q6">
+      <div class="qhead">
+        <div class="num">6</div>
+        <div class="qtitle">Вектор из 7 признаков → предсказываем одно число. Какого размера матрица линейного слоя?</div>
+        <button class="reveal" onclick="toggleAnswer(6)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-6">
+        
+        <p>Есть <b>7 входных признаков</b> и <b>1 выход</b>.</p>
+        <p>Если записывать слой как <code>y = Wx + b</code>, где <code>x</code> — столбец <code>7×1</code>,
+        то <code>W</code> имеет размер <b>1×7</b>, а <code>b</code> — одно число.</p>
+        <p>Если ML-матрица данных записана как <code>X</code> размера <code>n×7</code> и
+        <code>ŷ = Xw + b</code>, тогда вектор коэффициентов <code>w</code> имеет размер <b>7×1</b>.</p>
+        <div class="note">Это одна и та же модель — различается только соглашение о том,
+        с какой стороны умножается матрица весов.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>7 входов, 1 выход</li><li>W = 1×7 при y=Wx+b</li><li>или w = 7×1 при Xw</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>А если нужно предсказывать сразу 3 числа?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="6" data-score="0">0 — мимо</button>
+        <button class="score" data-q="6" data-score="1">1 — частично</button>
+        <button class="score" data-q="6" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q7">
+      <div class="qhead">
+        <div class="num">7</div>
+        <div class="qtitle">Чем заполнять пропуски в данных?</div>
+        <button class="reveal" onclick="toggleAnswer(7)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-7">
+        
+        <p>Универсального значения нет — способ зависит от признака и механизма пропусков.</p>
+        <ul>
+          <li><b>Числовые:</b> медиана — хороший устойчивый baseline; среднее — если распределение без сильных выбросов.</li>
+          <li><b>Категориальные:</b> мода или отдельная категория <code>Unknown/Missing</code>.</li>
+          <li><b>Временные ряды:</b> иногда forward/backward fill или интерполяция, только если это оправдано смыслом.</li>
+          <li><b>Продвинутые варианты:</b> KNN/Iterative imputation, модельное восстановление.</li>
+        </ul>
+        <p>Иногда полезно добавить бинарный признак <code>was_missing</code>, потому что сам факт пропуска
+        может нести информацию.</p>
+        <div class="warn"><b>Критично:</b> imputer обучаем только на train и затем применяем к validation/test,
+        иначе будет data leakage. Удобно делать через <code>Pipeline</code>.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>способ зависит от данных</li><li>median/mean</li><li>mode/Unknown</li><li>fit imputer только на train</li><li>data leakage</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Почему нельзя посчитать медиану сразу по train+test?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="7" data-score="0">0 — мимо</button>
+        <button class="score" data-q="7" data-score="1">1 — частично</button>
+        <button class="score" data-q="7" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q8">
+      <div class="qhead">
+        <div class="num">8</div>
+        <div class="qtitle">Нужно ли нормировать данные перед линейной регрессией?</div>
+        <button class="reveal" onclick="toggleAnswer(8)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-8">
+        
+        <p>Для обычного <b>OLS LinearRegression</b> масштабирование признаков <b>не обязательно</b>:
+        само по себе изменение единиц измерения не лишает модель способности найти те же предсказания —
+        коэффициенты просто изменят масштаб.</p>
+        <p>Но scaling бывает полезен для численной устойчивости и удобства сравнения коэффициентов.</p>
+        <p>Для <b>Ridge/Lasso/ElasticNet scaling уже практически обязателен</b>, потому что штраф
+        применяется к величинам коэффициентов. Если масштабы признаков разные, регуляризация будет
+        воздействовать на них неравномерно.</p>
+        <div class="note">Типичный вариант: <code>StandardScaler</code> в <code>Pipeline</code>.
+        Бинарные one-hot признаки часто можно не стандартизировать.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>для OLS не обязательно</li><li>для регуляризации важно</li><li>причина — штраф на коэффициенты</li><li>StandardScaler/Pipeline</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Почему без scaling Ridge может «штрафовать» признаки несправедливо?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="8" data-score="0">0 — мимо</button>
+        <button class="score" data-q="8" data-score="1">1 — частично</button>
+        <button class="score" data-q="8" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q9">
+      <div class="qhead">
+        <div class="num">9</div>
+        <div class="qtitle">Что такое boxplot, как искать выбросы и что такое метод 3σ?</div>
+        <button class="reveal" onclick="toggleAnswer(9)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-9">
+        
+        <p><b>Boxplot</b> показывает медиану, квартиль <code>Q1</code>, квартиль <code>Q3</code>,
+        межквартильный размах <code>IQR = Q3 − Q1</code> и «усы».</p>
+        <p>Частое правило для потенциальных выбросов:</p>
+        <div class="formula">x &lt; Q1 − 1.5·IQR или x &gt; Q3 + 1.5·IQR</div>
+        <p>Это не автоматический приказ удалить наблюдение — только сигнал проверить его.</p>
+        <p><b>Метод 3σ:</b> при примерно нормальном распределении подозрительными считают значения
+        дальше трёх стандартных отклонений от среднего:</p>
+        <div class="formula">|x − μ| &gt; 3σ</div>
+        <p>Для сильно скошенных распределений и тяжёлых хвостов правило 3σ работает хуже;
+        IQR обычно устойчивее к выбросам.</p>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>Q1, медиана, Q3, IQR</li><li>границы 1.5 IQR</li><li>3σ вокруг среднего</li><li>это эвристики, не автоматическое удаление</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Почему IQR устойчивее к выбросам, чем mean±3σ?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="9" data-score="0">0 — мимо</button>
+        <button class="score" data-q="9" data-score="1">1 — частично</button>
+        <button class="score" data-q="9" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q10">
+      <div class="qhead">
+        <div class="num">10</div>
+        <div class="qtitle">Что делать с выбросами?</div>
+        <button class="reveal" onclick="toggleAnswer(10)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-10">
+        
+        <p>Сначала понять <b>причину</b>, а не удалять автоматически.</p>
+        <ul>
+          <li>Ошибка ввода/измерения → исправить, если можно подтвердить, иначе удалить.</li>
+          <li>Редкое, но реальное наблюдение → часто оставить.</li>
+          <li>Отдельный режим данных → возможно сегментировать задачу или добавить признаки.</li>
+          <li>Сильный хвост → попробовать лог-преобразование/Box-Cox/Yeo-Johnson.</li>
+          <li>Нужно уменьшить влияние → winsorization/capping или робастная модель/метрика.</li>
+        </ul>
+        <p>Решение принимается с учётом бизнес-смысла и поведения модели. Полезно сравнивать
+        качество <b>с обработкой и без неё</b> на корректной валидации.</p>
+        <div class="warn">Нельзя удалять «неудобные» точки только потому, что они ухудшают метрику.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>сначала выяснить природу</li><li>ошибка vs реальное редкое значение</li><li>transform/capping/robust</li><li>сравнить по валидации</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Когда удаление выброса оправдано?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="10" data-score="0">0 — мимо</button>
+        <button class="score" data-q="10" data-score="1">1 — частично</button>
+        <button class="score" data-q="10" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q11">
+      <div class="qhead">
+        <div class="num">11</div>
+        <div class="qtitle">Когда имеет смысл использовать линейную регрессию?</div>
+        <button class="reveal" onclick="toggleAnswer(11)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-11">
+        
+        <p>Линейная регрессия хороша как <b>быстрый интерпретируемый baseline</b> и как основная модель,
+        если зависимость таргета от признаков достаточно близка к линейной.</p>
+        <p>Особенно уместна, когда:</p>
+        <ul>
+          <li>нужна интерпретируемость коэффициентов;</li>
+          <li>данных не очень много;</li>
+          <li>отношение «признаки → таргет» примерно линейное или его можно сделать таким feature engineering;</li>
+          <li>нет экстремальной мультиколлинеарности либо используется регуляризация;</li>
+          <li>важна быстрая и дешёвая модель.</li>
+        </ul>
+        <p>Для классического статистического вывода дополнительно важны предпосылки о структуре ошибок
+        (например, гомоскедастичность и независимость). Для чистого предсказания они менее жёсткие,
+        но нарушения помогают диагностировать проблемы.</p>
+        <div class="note">Линейность модели означает линейность по <b>параметрам</b>.
+        Можно добавить, например, <code>x²</code> как новый признак и всё ещё использовать линейную регрессию.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>baseline</li><li>примерно линейная зависимость</li><li>интерпретируемость</li><li>мультиколлинеарность/регуляризация</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Является ли модель y=w₀+w₁x+w₂x² линейной регрессией?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="11" data-score="0">0 — мимо</button>
+        <button class="score" data-q="11" data-score="1">1 — частично</button>
+        <button class="score" data-q="11" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q12">
+      <div class="qhead">
+        <div class="num">12</div>
+        <div class="qtitle">Метрики регрессии: подробно, плюсы и минусы</div>
+        <button class="reveal" onclick="toggleAnswer(12)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-12">
+        
+        <h4>MAE — Mean Absolute Error</h4>
+        <div class="formula">MAE = mean(|y − ŷ|)</div>
+        <p><b>+</b> легко интерпретировать, те же единицы, что у target; устойчивее к выбросам, чем MSE.<br>
+        <b>−</b> большие ошибки не штрафуются особенно сильно; функция имеет излом в нуле.</p>
+
+        <h4>MSE — Mean Squared Error</h4>
+        <div class="formula">MSE = mean((y − ŷ)²)</div>
+        <p><b>+</b> сильно наказывает крупные ошибки; гладкая функция, удобна для оптимизации.<br>
+        <b>−</b> очень чувствительна к выбросам; единицы измерения возведены в квадрат.</p>
+
+        <h4>RMSE — Root Mean Squared Error</h4>
+        <div class="formula">RMSE = √MSE</div>
+        <p><b>+</b> сохраняет сильный штраф крупных ошибок, но возвращается в единицы target.<br>
+        <b>−</b> всё ещё чувствительна к выбросам.</p>
+
+        <h4>R² — коэффициент детерминации</h4>
+        <div class="formula">R² = 1 − SSres / SStot</div>
+        <p>Сравнивает модель с baseline, который всегда предсказывает среднее target.
+        <code>1</code> — идеально, <code>0</code> — примерно как среднее, <b>может быть отрицательным</b>,
+        если модель хуже такого baseline.</p>
+        <p><b>+</b> безразмерный, удобно оценивать долю объяснённой вариативности.<br>
+        <b>−</b> не говорит размер ошибки в реальных единицах; при добавлении признаков на train обычно не уменьшается.</p>
+
+        <h4>MAPE — Mean Absolute Percentage Error</h4>
+        <div class="formula">MAPE = mean(|(y − ŷ) / y|)</div>
+        <p><b>+</b> понятная относительная ошибка.<br>
+        <b>−</b> проблемна при <code>y≈0</code> и невозможна в обычном смысле при <code>y=0</code>;
+        асимметрична и может вести себя странно для отрицательных target.</p>
+
+        <div class="note"><b>На практике:</b> обычно показывают хотя бы одну метрику в единицах target
+        (MAE или RMSE) и R² как дополнительную.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>MAE</li><li>MSE</li><li>RMSE</li><li>R²</li><li>MAPE</li><li>выбросы и интерпретируемость</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Может ли R² быть отрицательным? Почему RMSE и MAE нельзя напрямую сравнивать между разными target-масштабами?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="12" data-score="0">0 — мимо</button>
+        <button class="score" data-q="12" data-score="1">1 — частично</button>
+        <button class="score" data-q="12" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q13">
+      <div class="qhead">
+        <div class="num">13</div>
+        <div class="qtitle">Когда использовать MAE, а когда MSE?</div>
+        <button class="reveal" onclick="toggleAnswer(13)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-13">
+        
+        <p><b>MAE</b> выбирают, если хочется одинаково штрафовать ошибку на 10 и ещё одну ошибку на 10,
+        а редкие экстремальные промахи не должны доминировать. Она робастнее к выбросам.</p>
+        <p><b>MSE</b> выбирают, если крупные ошибки особенно нежелательны: из-за квадрата ошибка в 10
+        влияет намного сильнее ошибки в 2.</p>
+        <p>Есть и статистическая интерпретация: минимизация MSE соответствует естественной постановке
+        при гауссовском шуме, а MAE — при лапласовском шуме.</p>
+        <div class="note"><b>Коротко:</b> MAE — «типичный абсолютный промах»; MSE/RMSE — «сильнее бойся крупных промахов».</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>MAE устойчивее к выбросам</li><li>MSE сильнее штрафует крупные ошибки</li><li>выбор зависит от цены ошибки</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Если одна ошибка в 100 критичнее десяти ошибок в 10, что предпочтительнее?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="13" data-score="0">0 — мимо</button>
+        <button class="score" data-q="13" data-score="1">1 — частично</button>
+        <button class="score" data-q="13" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q14">
+      <div class="qhead">
+        <div class="num">14</div>
+        <div class="qtitle">Что такое регуляризация?</div>
+        <button class="reveal" onclick="toggleAnswer(14)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-14">
+        
+        <p><b>Регуляризация</b> добавляет к функции потерь штраф за слишком сложные/большие параметры модели.</p>
+        <div class="formula">Loss = DataLoss + λ · Penalty(w)</div>
+        <p>Цель — уменьшить переобучение, стабилизировать коэффициенты и улучшить обобщающую способность.
+        Параметр <code>λ</code> (в sklearn часто <code>alpha</code>) управляет силой штрафа.</p>
+        <p>При <code>λ=0</code> штрафа нет. Чем больше <code>λ</code>, тем сильнее коэффициенты прижимаются к нулю,
+        но слишком сильная регуляризация приводит к недообучению.</p>
+        <div class="warn">Intercept обычно не регуляризуют. Перед L1/L2 признаки желательно масштабировать.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>штраф к loss</li><li>борьба с переобучением</li><li>λ/alpha</li><li>слишком сильная → underfit</li><li>scaling</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Что произойдёт при очень большом alpha?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="14" data-score="0">0 — мимо</button>
+        <button class="score" data-q="14" data-score="1">1 — частично</button>
+        <button class="score" data-q="14" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q15">
+      <div class="qhead">
+        <div class="num">15</div>
+        <div class="qtitle">L2, L1 и ElasticNet</div>
+        <button class="reveal" onclick="toggleAnswer(15)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-15">
+        
+        <h4>L2 / Ridge</h4>
+        <div class="formula">Loss = MSE + λ Σwⱼ²</div>
+        <p>Сжимает коэффициенты, обычно не делает их ровно нулевыми. Хорошо стабилизирует модель
+        при коррелирующих признаках.</p>
+
+        <h4>L1 / Lasso</h4>
+        <div class="formula">Loss = MSE + λ Σ|wⱼ|</div>
+        <p>Может занулять часть коэффициентов → даёт разреженное решение и встроенный отбор признаков.
+        При сильно коррелирующих фичах может нестабильно выбирать одну из них.</p>
+
+        <h4>ElasticNet</h4>
+        <div class="formula">Loss = MSE + λ₁Σ|wⱼ| + λ₂Σwⱼ²</div>
+        <p>Сочетает свойства L1 и L2: умеет делать sparsity, но ведёт себя стабильнее на группах
+        коррелирующих признаков.</p>
+
+        <div class="note">Перед всеми этими моделями числовые признаки обычно стандартизируют.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>Ridge = L2</li><li>Lasso = L1</li><li>ElasticNet = смесь</li><li>L1 может занулять</li><li>L2 стабилизирует</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Что выбрать при большом числе коррелирующих признаков?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="15" data-score="0">0 — мимо</button>
+        <button class="score" data-q="15" data-score="1">1 — частично</button>
+        <button class="score" data-q="15" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+    <section class="card" id="q16">
+      <div class="qhead">
+        <div class="num">16</div>
+        <div class="qtitle">Почему L2 не зануляет фичи, а L1 зануляет?</div>
+        <button class="reveal" onclick="toggleAnswer(16)">Показать ответ</button>
+      </div>
+      <div class="answer" id="answer-16">
+        
+        <p>У L2 штраф <code>w²</code> гладкий. Его производная равна <code>2w</code> и плавно стремится к нулю
+        вместе с коэффициентом. Поэтому оптимизатор обычно <b>сжимает</b> вес, но не получает особой причины
+        поставить его точно в ноль.</p>
+        <p>У L1 штраф <code>|w|</code> имеет <b>излом в нуле</b>. В нуле используется субградиент,
+        и существует целый диапазон условий, при которых точный ноль является оптимальным решением.
+        Поэтому Lasso создаёт разреженные коэффициенты.</p>
+        <p>Геометрическая картинка: область L1 — «ромб» с углами на осях, и уровни функции потерь
+        часто впервые касаются именно угла → одна или несколько координат становятся нулевыми.
+        Область L2 — гладкая окружность/сфера, поэтому точное попадание на ось менее типично.</p>
+        <div class="note"><b>Фраза на собесе:</b> L1 даёт sparsity из-за негладкости штрафа в нуле;
+        L2 даёт shrinkage из-за гладкого квадратичного штрафа.</div>
+        
+        <div class="checker">
+          <div>
+            <h4>✅ Что должен услышать проверяющий</h4>
+            <ul><li>L2 гладкий</li><li>L1 негладкий в нуле</li><li>субградиент</li><li>sparsity vs shrinkage</li><li>геометрия ромба и сферы</li></ul>
+          </div>
+          <div>
+            <h4>🎯 Допвопрос</h4>
+            <p>Что такое субградиент |w| в точке w=0?</p>
+          </div>
+        </div>
+      </div>
+      <div class="scoreline">
+        <span>Оценка друга:</span>
+        <button class="score" data-q="16" data-score="0">0 — мимо</button>
+        <button class="score" data-q="16" data-score="1">1 — частично</button>
+        <button class="score" data-q="16" data-score="2">2 — уверенно</button>
+      </div>
+    </section>
+    
+
+  <div class="footer">
+    Составлено как тренировочная шпаргалка. Для собеседования важнее объяснить идею своими словами,
+    чем воспроизвести формулировку дословно.
+  </div>
+</div>
+
+<script>
+function toggleAnswer(i) {
+  const a = document.getElementById('answer-'+i);
+  const btn = document.querySelector('#q'+i+' .reveal');
+  a.classList.toggle('open');
+  btn.textContent = a.classList.contains('open') ? 'Скрыть ответ' : 'Показать ответ';
+}
+function showAll() {
+  document.querySelectorAll('.answer').forEach(x=>x.classList.add('open'));
+  document.querySelectorAll('.reveal').forEach(x=>x.textContent='Скрыть ответ');
+}
+function hideAll() {
+  document.querySelectorAll('.answer').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.reveal').forEach(x=>x.textContent='Показать ответ');
+}
+function randomQuestion() {
+  hideAll();
+  const i = 1 + Math.floor(Math.random()*16);
+  const card = document.getElementById('q'+i);
+  card.scrollIntoView({behavior:'smooth',block:'center'});
+  card.classList.add('flash');
+  setTimeout(()=>card.classList.remove('flash'),1000);
+}
+const scores = JSON.parse(localStorage.getItem('ds-start-scores') || '{}');
+function renderScores() {
+  document.querySelectorAll('.score').forEach(btn => {
+    const q = btn.dataset.q;
+    btn.classList.toggle('active', String(scores[q]) === btn.dataset.score);
+  });
+  const sum = Object.values(scores).reduce((a,b)=>a+Number(b),0);
+  document.getElementById('scorebox').textContent = `Баллы: ${sum} / 32`;
+}
+document.querySelectorAll('.score').forEach(btn => {
+  btn.addEventListener('click', () => {
+    scores[btn.dataset.q] = Number(btn.dataset.score);
+    localStorage.setItem('ds-start-scores', JSON.stringify(scores));
+    renderScores();
+  });
+});
+function resetScores() {
+  Object.keys(scores).forEach(k=>delete scores[k]);
+  localStorage.removeItem('ds-start-scores');
+  renderScores();
+}
+renderScores();
+</script>
+</body>
+</html>

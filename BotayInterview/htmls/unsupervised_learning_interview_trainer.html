@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unsupervised Learning — Interview Trainer</title>
+<style>
+:root {
+  --bg:#0f1117;
+  --panel:#171a23;
+  --panel2:#202531;
+  --panel3:#12151d;
+  --text:#edf2ff;
+  --muted:#9aa6bd;
+  --accent:#7aa2ff;
+  --accent2:#8be9c1;
+  --warn:#ffd166;
+  --danger:#ff7b8b;
+  --border:#2a3140;
+  --good:#79d98c;
+  --radius:18px;
+  --shadow:0 14px 36px rgba(0,0,0,.28);
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(122,162,255,.12), transparent 32rem),
+    radial-gradient(circle at 95% 15%, rgba(139,233,193,.08), transparent 28rem),
+    var(--bg);
+  color:var(--text);
+  line-height:1.65;
+}
+a { color:var(--accent); }
+button { font:inherit; }
+.container { width:min(1120px, calc(100% - 28px)); margin:0 auto; }
+
+.hero {
+  padding:54px 0 30px;
+}
+.eyebrow {
+  display:inline-flex; gap:8px; align-items:center;
+  padding:7px 11px; border:1px solid var(--border); border-radius:999px;
+  background:rgba(23,26,35,.72); color:var(--accent2); font-size:.86rem; font-weight:700;
+}
+.hero h1 {
+  margin:18px 0 10px;
+  font-size:clamp(2rem, 5vw, 4rem);
+  line-height:1.02;
+  letter-spacing:-.04em;
+}
+.hero h1 span { color:var(--accent); }
+.hero p { max-width:820px; color:var(--muted); font-size:1.05rem; }
+.hero-grid {
+  margin-top:24px;
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
+}
+.stat {
+  background:rgba(23,26,35,.82); border:1px solid var(--border); border-radius:16px; padding:16px;
+}
+.stat b { display:block; font-size:1.35rem; }
+.stat span { color:var(--muted); font-size:.9rem; }
+
+.instruction {
+  background:linear-gradient(135deg, rgba(122,162,255,.11), rgba(139,233,193,.06));
+  border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:18px;
+}
+.instruction h2 { margin:0 0 8px; font-size:1.05rem; }
+.instruction ol { margin:8px 0 0 20px; padding:0; }
+.instruction li { margin:4px 0; }
+
+.cheats {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0 22px;
+}
+.cheat {
+  border:1px solid var(--border); border-radius:16px; padding:16px; background:var(--panel);
+}
+.cheat h3 { margin:0 0 8px; color:var(--accent2); }
+.cheat pre {
+  margin:0; white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color:#d9e3ff; font-size:.88rem;
+}
+
+.toolbar-wrap {
+  position:sticky; top:0; z-index:50;
+  background:rgba(15,17,23,.88); backdrop-filter:blur(14px);
+  border-top:1px solid rgba(255,255,255,.03); border-bottom:1px solid var(--border);
+}
+.toolbar {
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:10px 0;
+}
+.tool-btn {
+  border:1px solid var(--border); background:var(--panel); color:var(--text);
+  border-radius:11px; padding:8px 11px; cursor:pointer;
+}
+.tool-btn:hover { border-color:var(--accent); transform:translateY(-1px); }
+.scoreline {
+  margin-left:auto; padding:8px 12px; border-radius:11px;
+  background:var(--panel2); border:1px solid var(--border); font-weight:800;
+}
+.scoreline .score-now { color:var(--accent2); }
+
+.filters {
+  padding:14px 0 4px;
+  display:flex; gap:7px; flex-wrap:wrap;
+}
+.topic-pill {
+  border:1px solid var(--border); color:var(--muted); background:transparent;
+  border-radius:999px; padding:6px 10px; cursor:pointer;
+}
+.topic-pill:hover, .topic-pill.active { background:var(--panel2); color:var(--text); border-color:var(--accent); }
+
+.nav-grid {
+  display:grid; grid-template-columns:repeat(21, minmax(32px,1fr)); gap:6px; margin:10px 0 24px;
+}
+.nav-q {
+  height:36px; border:1px solid var(--border); border-radius:9px;
+  background:var(--panel); color:var(--muted); cursor:pointer;
+}
+.nav-q:hover { border-color:var(--accent); color:var(--text); }
+.nav-q.scored-0 { border-color:var(--danger); color:var(--danger); }
+.nav-q.scored-1 { border-color:var(--warn); color:var(--warn); }
+.nav-q.scored-2 { border-color:var(--good); color:var(--good); }
+
+.question-card {
+  background:linear-gradient(180deg, rgba(32,37,49,.72), rgba(23,26,35,.95));
+  border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:22px; margin:0 0 18px;
+  scroll-margin-top:88px;
+}
+.question-card.flash { animation:flash 1.2s ease; }
+@keyframes flash {
+  0% { box-shadow:0 0 0 0 rgba(122,162,255,.0); }
+  25% { box-shadow:0 0 0 5px rgba(122,162,255,.28); }
+  100% { box-shadow:var(--shadow); }
+}
+.q-head {
+  display:flex; justify-content:space-between; gap:18px; align-items:flex-start;
+}
+.meta { display:flex; gap:8px; align-items:center; }
+.num {
+  color:var(--accent); font-weight:900; font-size:.92rem;
+}
+.topic {
+  padding:4px 8px; border-radius:999px; background:rgba(139,233,193,.08);
+  border:1px solid rgba(139,233,193,.18); color:var(--accent2); font-size:.78rem; font-weight:700;
+}
+.q-head h2 {
+  margin:8px 0 0; font-size:clamp(1.18rem, 2.5vw, 1.55rem); line-height:1.25;
+}
+.toggle-answer {
+  flex:0 0 auto; border:1px solid rgba(122,162,255,.5); background:rgba(122,162,255,.09);
+  color:#c9d7ff; border-radius:12px; padding:9px 12px; cursor:pointer; font-weight:800;
+}
+.toggle-answer:hover { background:rgba(122,162,255,.16); }
+.answer { margin-top:18px; }
+.answer-main, .must-hear, .followup {
+  border-top:1px solid var(--border); padding-top:17px; margin-top:14px;
+}
+.answer h3 { margin:0 0 8px; font-size:1rem; color:#d9e3ff; }
+.answer p { margin:8px 0; }
+.answer ul { margin:8px 0 8px 22px; padding:0; }
+.answer li { margin:4px 0; }
+code {
+  background:#10141d; border:1px solid #252d3d; padding:2px 6px; border-radius:6px;
+  color:#b9d0ff; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.formula {
+  margin:12px 0; padding:12px 14px; border-radius:12px;
+  background:#10141d; border:1px solid #293246; color:#dbe5ff;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow:auto;
+}
+.callout, .warning {
+  margin:13px 0; padding:12px 14px; border-radius:12px;
+}
+.callout { background:rgba(122,162,255,.08); border:1px solid rgba(122,162,255,.25); }
+.warning { background:rgba(255,209,102,.07); border:1px solid rgba(255,209,102,.25); color:#ffe9a9; }
+.must-hear {
+  background:rgba(139,233,193,.055); border:1px solid rgba(139,233,193,.2);
+  border-radius:14px; padding:14px 16px; margin-top:18px;
+}
+.must-hear h3 { color:var(--accent2); }
+.followup {
+  border:1px solid var(--border); border-radius:14px; padding:0; overflow:hidden;
+}
+.followup summary {
+  cursor:pointer; list-style:none; padding:13px 15px; font-weight:800; background:rgba(255,255,255,.015);
+}
+.followup summary::-webkit-details-marker { display:none; }
+.followup .follow-q { padding:0 15px; font-weight:700; }
+.follow-a { margin:0 15px 15px; padding:12px; background:var(--panel3); border-radius:10px; color:#d8e1f2; }
+
+.score-row {
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:18px; padding-top:15px;
+  border-top:1px solid var(--border); color:var(--muted);
+}
+.score-btn {
+  width:36px; height:34px; border-radius:9px; border:1px solid var(--border);
+  background:var(--panel3); color:var(--text); cursor:pointer; font-weight:900;
+}
+.score-btn[data-score="0"].selected { background:rgba(255,123,139,.14); border-color:var(--danger); color:var(--danger); }
+.score-btn[data-score="1"].selected { background:rgba(255,209,102,.14); border-color:var(--warn); color:var(--warn); }
+.score-btn[data-score="2"].selected { background:rgba(121,217,140,.14); border-color:var(--good); color:var(--good); }
+.score-label { font-size:.86rem; }
+
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; margin:12px 0; min-width:650px; }
+th, td { border:1px solid var(--border); padding:10px 12px; text-align:left; vertical-align:top; }
+th { background:var(--panel3); color:#d8e5ff; }
+td { color:#d4dbea; }
+
+.footer {
+  color:var(--muted); text-align:center; padding:30px 0 48px;
+}
+.hidden-by-filter { display:none !important; }
+
+@media (max-width:860px) {
+  .hero-grid, .cheats { grid-template-columns:1fr; }
+  .nav-grid { grid-template-columns:repeat(7,1fr); }
+  .q-head { flex-direction:column; }
+  .toggle-answer { width:100%; }
+  .scoreline { margin-left:0; width:100%; text-align:center; }
+}
+@media (max-width:460px) {
+  .container { width:min(100% - 18px, 1120px); }
+  .question-card { padding:16px; border-radius:14px; }
+  .nav-grid { grid-template-columns:repeat(7,1fr); }
+}
+@media print {
+  :root { --bg:#fff; --panel:#fff; --panel2:#f4f4f6; --text:#111; --muted:#555; --border:#ccc; }
+  body { background:#fff; color:#111; }
+  .toolbar-wrap, .filters, .nav-grid, .score-row, .toggle-answer, .hero-grid { display:none !important; }
+  .answer[hidden] { display:block !important; }
+  .question-card { box-shadow:none; break-inside:avoid; background:#fff; }
+  .must-hear, .formula, .callout, .warning { color:#111; background:#fafafa; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="eyebrow">🧠 DS Interview Trainer · Unsupervised Learning</div>
+    <h1>От PCA до DBSCAN — <span>без магии</span></h1>
+    <p>21 вопрос для устной тренировки: сначала отвечаешь сама, потом открываешь эталон, проверяешь ключевые пункты, ловишь допвопрос и ставишь себе 0 / 1 / 2.</p>
+
+    <div class="hero-grid">
+      <div class="stat"><b>21</b><span>вопрос</span></div>
+      <div class="stat"><b>42</b><span>максимум баллов</span></div>
+      <div class="stat"><b>10</b><span>тематических блоков</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="instruction">
+    <h2>Как проходить тренажёр</h2>
+    <ol>
+      <li><b>Не открывай ответ.</b> Ответь вслух так, будто перед тобой интервьюер.</li>
+      <li>Нажми <b>«Показать ответ»</b> и сравни с эталоном.</li>
+      <li>Проверь блок <b>«Что должен услышать проверяющий»</b>.</li>
+      <li>Открой <b>допвопрос</b> и ответь без подсказки.</li>
+      <li>Поставь себе <b>0</b> — не ответила, <b>1</b> — частично, <b>2</b> — уверенно.</li>
+    </ol>
+  </section>
+
+  <section class="cheats">
+    <div class="cheat">
+      <h3>⚡ Карта блока</h3>
+      <pre>UNSUPERVISED
+├─ Dimensionality Reduction
+│  ├─ PCA → linear, max variance
+│  └─ t-SNE → nonlinear, local neighbours
+└─ Clustering
+   ├─ K-means → centroids
+   ├─ Hierarchical → metric + linkage
+   └─ DBSCAN → density + noise</pre>
+    </div>
+    <div class="cheat">
+      <h3>🚨 4 любимые ловушки</h3>
+      <pre>1. PCA не видит y.
+2. Max variance ≠ max usefulness for target.
+3. t-SNE не сохраняет глобальные расстояния.
+4. K-means плохо определён для категорий:
+   средний "город" посчитать нельзя.</pre>
+    </div>
+  </section>
+</main>
+
+<div class="toolbar-wrap">
+  <div class="container toolbar">
+    <button class="tool-btn" id="hideAll" type="button">Скрыть всё</button>
+    <button class="tool-btn" id="showAll" type="button">Показать всё</button>
+    <button class="tool-btn" id="randomQ" type="button">🎲 Случайный вопрос</button>
+    <button class="tool-btn" id="resetScores" type="button">Сбросить баллы</button>
+    <div class="scoreline">Баллы: <span class="score-now">0</span> / 42</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="filters">
+    <button class="topic-pill active" data-filter="all">Все темы</button>
+    <button class="topic-pill" data-filter="Основы">Основы</button><button class="topic-pill" data-filter="Бизнес-примеры">Бизнес-примеры</button><button class="topic-pill" data-filter="PCA">PCA</button><button class="topic-pill" data-filter="Статистика">Статистика</button><button class="topic-pill" data-filter="Линейная алгебра">Линейная алгебра</button><button class="topic-pill" data-filter="t-SNE">t-SNE</button><button class="topic-pill" data-filter="Иерархическая">Иерархическая</button><button class="topic-pill" data-filter="K-means">K-means</button><button class="topic-pill" data-filter="Метрики">Метрики</button><button class="topic-pill" data-filter="DBSCAN">DBSCAN</button>
+  </div>
+
+  <div class="nav-grid" aria-label="Навигация по вопросам">
+    <button class="nav-q" data-target="q1" title="Обучение с учителем vs обучение без учителя">1</button><button class="nav-q" data-target="q2" title="Российские компании: supervised learning">2</button><button class="nav-q" data-target="q3" title="Российские компании: unsupervised learning">3</button><button class="nav-q" data-target="q4" title="Зачем понижать размерность данных?">4</button><button class="nav-q" data-target="q5" title="Что значит максимизировать дисперсию в PCA?">5</button><button class="nav-q" data-target="q6" title="PCA — линейное преобразование или нет?">6</button><button class="nav-q" data-target="q7" title="Как PCA использует матрицу ковариации?">7</button><button class="nav-q" data-target="q8" title="Что такое ковариация?">8</button><button class="nav-q" data-target="q9" title="Что такое корреляция?">9</button><button class="nav-q" data-target="q10" title="Собственные числа и собственные векторы матрицы">10</button><button class="nav-q" data-target="q11" title="Как t-SNE сохраняет локальную структуру?">11</button><button class="nav-q" data-target="q12" title="Что делает perplexity и как её выбирать?">12</button><button class="nav-q" data-target="q13" title="Как в t-SNE используется градиентный спуск?">13</button><button class="nav-q" data-target="q14" title="Как t-SNE сохраняет расположение кластеров?">14</button><button class="nav-q" data-target="q15" title="PCA vs t-SNE: плюсы и минусы">15</button><button class="nav-q" data-target="q16" title="Метрики расстояния и linkage в иерархической кластеризации">16</button><button class="nav-q" data-target="q17" title="Как начальные центроиды влияют на K-means?">17</button><button class="nav-q" data-target="q18" title="Какие метрики есть в задаче кластеризации?">18</button><button class="nav-q" data-target="q19" title="Как адаптировать K-means к категориальным признакам?">19</button><button class="nav-q" data-target="q20" title="Как eps и min_samples влияют на DBSCAN?">20</button><button class="nav-q" data-target="q21" title="DBSCAN для обнаружения аномалий">21</button>
+  </div>
+
+  <section id="questions">
+    
+    <article class="question-card" id="q1" data-q="1" data-topic="Основы">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#1</span><span class="topic">Основы</span></div>
+          <h2>Обучение с учителем vs обучение без учителя</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p><b>Supervised learning</b> — у нас есть признаки <code>X</code> и известные правильные ответы <code>y</code>. 
+        Модель учится приближать зависимость <code>f(X) ≈ y</code>.</p>
+        <p><b>Примеры supervised-задач:</b></p>
+        <ul>
+          <li>классификация: спам / не спам;</li>
+          <li>регрессия: предсказать стоимость квартиры;</li>
+          <li>прогноз вероятности события / ранжирование: вероятность клика, покупки, дефолта.</li>
+        </ul>
+        <p><b>Unsupervised learning</b> — есть только <code>X</code>, а целевой переменной <code>y</code> нет. 
+        Алгоритм ищет структуру внутри самих данных.</p>
+        <p><b>Примеры unsupervised-задач:</b></p>
+        <ul>
+          <li>кластеризация клиентов;</li>
+          <li>снижение размерности — PCA, t-SNE;</li>
+          <li>обнаружение аномалий / скрытых групп.</li>
+        </ul>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Главное различие — наличие целевой переменной y. В supervised мы предсказываем известную цель, в unsupervised ищем структуру в X.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Можно ли использовать кластеризацию, если у нас есть метки классов?</p>
+          <div class="follow-a"><b>Ответ:</b> Да. Метки можно не использовать при обучении, а затем применять только для внешней оценки качества кластеризации — например, ARI или AMI.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 1">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q2" data-q="2" data-topic="Бизнес-примеры">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#2</span><span class="topic">Бизнес-примеры</span></div>
+          <h2>Российские компании: supervised learning</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>Примеры, которые удобно приводить на собеседовании:</p>
+        <ul>
+          <li><b>Яндекс</b> — ранжирование и прогнозирование вероятности клика/действия в рекламе и рекомендациях.</li>
+          <li><b>Ozon</b> — прогноз спроса и продаж по историческим данным.</li>
+          <li><b>Сбер</b> — кредитный скоринг: вероятность дефолта или иного кредитного события.</li>
+        </ul>
+        <div class="callout">Важно: компании не всегда раскрывают точные production-алгоритмы. Здесь важен тип задачи и наличие исторического target.</div>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Три пары «компания → продукт/задача» и объяснение, где находится target: клик, будущий спрос, дефолт.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему прогноз спроса — supervised learning?</p>
+          <div class="follow-a"><b>Ответ:</b> Потому что для прошлых моментов времени известен фактически реализованный будущий спрос. Его можно использовать как y.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 2">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q3" data-q="3" data-topic="Бизнес-примеры">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#3</span><span class="topic">Бизнес-примеры</span></div>
+          <h2>Российские компании: unsupervised learning</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <ul>
+          <li><b>Сбер</b> — кластеризация / тематизация пользовательских отзывов и текстов.</li>
+          <li><b>VK / Одноклассники</b> — группировка похожих объектов, например визуально или семантически похожего контента.</li>
+          <li><b>Ozon</b> — графовая кластеризация, community detection, сегментация похожих сущностей.</li>
+        </ul>
+        <p>Типичные бизнес-задачи unsupervised learning: сегментация клиентов, тематизация текстов, поиск похожих товаров, поиск аномалий.</p>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Показать, что в задаче нет готовой y: алгоритм сам объединяет объекты по структуре/сходству.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Рекомендательная система всегда относится к unsupervised learning?</p>
+          <div class="follow-a"><b>Ответ:</b> Нет. Рекомендации могут строиться и как supervised/ranking-задача, и с использованием embeddings, кластеризации, self-supervised и гибридных подходов.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 3">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q4" data-q="4" data-topic="PCA">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#4</span><span class="topic">PCA</span></div>
+          <h2>Зачем понижать размерность данных?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>Снижение размерности переводит данные из пространства с большим числом признаков в пространство меньшей размерности, стараясь сохранить полезную структуру.</p>
+        <ul>
+          <li>ускоряет обучение и инференс;</li>
+          <li>уменьшает расход памяти;</li>
+          <li>помогает бороться с проклятием размерности;</li>
+          <li>убирает часть избыточных и коррелирующих признаков;</li>
+          <li>может подавлять шум;</li>
+          <li>позволяет визуализировать данные в 2D/3D.</li>
+        </ul>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Не просто «чтобы было меньше признаков», а ради вычислительной эффективности, борьбы с избыточностью/шумом и визуализации.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Всегда ли снижение размерности улучшает качество модели?</p>
+          <div class="follow-a"><b>Ответ:</b> Нет. Можно потерять полезную информацию. Это компромисс между компактностью представления и информационными потерями.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 4">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q5" data-q="5" data-topic="PCA">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#5</span><span class="topic">PCA</span></div>
+          <h2>Что значит максимизировать дисперсию в PCA?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>PCA ищет такое единичное направление <code>w</code>, чтобы дисперсия проекций данных на него была максимальна:</p>
+        <div class="formula">z = Xw, &nbsp;&nbsp; Var(Xw) → max, &nbsp;&nbsp; ||w|| = 1</div>
+        <p>Интуитивно: если спроецировать вытянутое облако точек вдоль его «длинной оси», объекты останутся хорошо различимы. 
+        Если спроецировать поперёк — точки могут почти наложиться друг на друга.</p>
+        <p>Первая компонента сохраняет максимум дисперсии, вторая — максимум из оставшегося при условии ортогональности первой, и так далее.</p>
+        <div class="warning"><b>Ловушка:</b> большая дисперсия не обязана быть самой полезной для конкретного target — PCA вообще не использует y.</div>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Максимальная дисперсия = максимально сохранить различия между объектами после линейной проекции. PCA не знает про y.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему PCA может навредить supervised-модели?</p>
+          <div class="follow-a"><b>Ответ:</b> Признак с небольшой дисперсией может быть очень важен для y. PCA способен отбросить его, потому что оптимизирует дисперсию X, а не предсказательную силу.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 5">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q6" data-q="6" data-topic="PCA">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#6</span><span class="topic">PCA</span></div>
+          <h2>PCA — линейное преобразование или нет?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p><b>Да, линейное.</b> Новые признаки — линейные комбинации исходных:</p>
+        <div class="formula">PC₁ = w₁₁x₁ + w₁₂x₂ + ... + w₁ₙxₙ</div>
+        <p>В матричном виде после центрирования:</p>
+        <div class="formula">Z = XW</div>
+        <p>Столбцы <code>W</code> — выбранные направления главных компонент.</p>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Да. После центрирования PCA — умножение на матрицу направлений главных компонент.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Центрирование само по себе линейное преобразование?</p>
+          <div class="follow-a"><b>Ответ:</b> Строго математически вычитание среднего — аффинное преобразование. Но сама смена базиса PCA задаётся линейным оператором.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 6">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q7" data-q="7" data-topic="PCA">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#7</span><span class="topic">PCA</span></div>
+          <h2>Как PCA использует матрицу ковариации?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>Для центрированной матрицы данных <code>X ∈ Rⁿˣᵈ</code> можно построить:</p>
+        <div class="formula">C = 1/(n−1) · XᵀX</div>
+        <p><code>C</code> имеет размер <code>d × d</code>. Затем решается задача:</p>
+        <div class="formula">Cv = λv</div>
+        <ul>
+          <li><code>v</code> — собственный вектор, то есть направление главной компоненты;</li>
+          <li><code>λ</code> — дисперсия данных вдоль этого направления.</li>
+        </ul>
+        <p>Собственные значения сортируют по убыванию и выбирают первые <code>k</code> собственных векторов.</p>
+        <div class="callout">На практике PCA часто считают через SVD, не формируя covariance matrix явно.</div>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Covariance matrix → eigenvectors дают направления компонент, eigenvalues отражают объяснённую дисперсию.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Какого размера covariance matrix, если 1000 объектов и 20 признаков?</p>
+          <div class="follow-a"><b>Ответ:</b> 20 × 20, потому что ковариации считаются между признаками.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 7">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q8" data-q="8" data-topic="Статистика">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#8</span><span class="topic">Статистика</span></div>
+          <h2>Что такое ковариация?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>Ковариация показывает, как две величины изменяются совместно:</p>
+        <div class="formula">Cov(X,Y) = E[(X−E[X])(Y−E[Y])]</div>
+        <p>Выборочная версия:</p>
+        <div class="formula">Cov(X,Y) = 1/(n−1) · Σ(xᵢ−x̄)(yᵢ−ȳ)</div>
+        <ul>
+          <li><code>Cov &gt; 0</code> — обычно растут вместе;</li>
+          <li><code>Cov &lt; 0</code> — одна растёт, другая обычно уменьшается;</li>
+          <li><code>Cov ≈ 0</code> — выраженной линейной совместной связи нет.</li>
+        </ul>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Знак ковариации показывает направление линейной совместной изменчивости; величина зависит от масштаба признаков.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Ковариация 100 больше и значит сильнее, чем ковариация 10?</p>
+          <div class="follow-a"><b>Ответ:</b> Не обязательно. Ковариация зависит от единиц измерения и масштаба. Для сравнения силы линейной связи удобнее корреляция.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 8">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q9" data-q="9" data-topic="Статистика">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#9</span><span class="topic">Статистика</span></div>
+          <h2>Что такое корреляция?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>Корреляция Пирсона — нормированная ковариация:</p>
+        <div class="formula">ρ(X,Y) = Cov(X,Y) / (σₓσᵧ)</div>
+        <p>Поэтому <code>−1 ≤ ρ ≤ 1</code>.</p>
+        <ul>
+          <li><code>ρ ≈ 1</code> — сильная прямая линейная связь;</li>
+          <li><code>ρ ≈ 0</code> — слабая или отсутствующая линейная связь;</li>
+          <li><code>ρ ≈ −1</code> — сильная обратная линейная связь.</li>
+        </ul>
+        <div class="warning"><b>Важно:</b> нулевая корреляция не означает отсутствие любой зависимости — зависимость может быть нелинейной.</div>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Корреляция — безразмерная нормированная ковариация в диапазоне [−1, 1]. Она характеризует линейную связь.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Корреляция означает причинность?</p>
+          <div class="follow-a"><b>Ответ:</b> Нет. Корреляция показывает статистическую связь, но не доказывает причинно-следственную зависимость.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 9">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q10" data-q="10" data-topic="Линейная алгебра">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#10</span><span class="topic">Линейная алгебра</span></div>
+          <h2>Собственные числа и собственные векторы матрицы</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>Собственный вектор <code>v ≠ 0</code> матрицы <code>A</code> удовлетворяет:</p>
+        <div class="formula">Av = λv</div>
+        <p>После действия матрицы направление вектора сохраняется; меняется его масштаб и, при отрицательном λ, ориентация.</p>
+        <p>Из уравнения:</p>
+        <div class="formula">(A − λI)v = 0</div>
+        <p>Ненулевое решение существует, когда:</p>
+        <div class="formula">det(A − λI) = 0</div>
+        <p>Сначала находят собственные значения <code>λ</code>, затем для каждого решают систему <code>(A−λI)v=0</code>.</p>
+        <div class="callout">Для больших матриц характеристический полином обычно явно не считают: применяют численные алгоритмы, например QR-итерации и другие итерационные методы.</div>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Av = λv: собственный вектор не меняет направление под действием A; λ показывает масштабирование.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему у covariance matrix в PCA удобно работать с собственными векторами?</p>
+          <div class="follow-a"><b>Ответ:</b> Матрица ковариации симметрична, поэтому у неё вещественные собственные значения и можно выбрать ортонормированный базис собственных векторов.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 10">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q11" data-q="11" data-topic="t-SNE">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#11</span><span class="topic">t-SNE</span></div>
+          <h2>Как t-SNE сохраняет локальную структуру?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>В высокоразмерном пространстве t-SNE превращает расстояния между точками в вероятности сходства <code>pᵢⱼ</code>: близкие точки получают большую вероятность быть соседями.</p>
+        <p>В низкоразмерном пространстве строятся аналогичные сходства <code>qᵢⱼ</code>. Затем алгоритм минимизирует расхождение между ними:</p>
+        <div class="formula">KL(P || Q)</div>
+        <p>Цель — чтобы локальные соседства из исходного пространства по возможности сохранились в 2D/3D.</p>
+        <div class="warning"><b>Главное ограничение:</b> t-SNE не обязан сохранять глобальную геометрию — расстояния между далёкими кластерами, их размеры и взаимное расположение могут искажаться.</div>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Высокомерные расстояния → вероятности соседства → низкоразмерные вероятности → минимизация KL divergence. t-SNE прежде всего сохраняет локальное соседство.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему в t-SNE в низком пространстве используют тяжёлохвостое распределение?</p>
+          <div class="follow-a"><b>Ответ:</b> Student t-distribution помогает уменьшить crowding problem: далёкие точки могут раздвигаться сильнее, чем при гауссовом распределении.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 11">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q12" data-q="12" data-topic="t-SNE">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#12</span><span class="topic">t-SNE</span></div>
+          <h2>Что делает perplexity и как её выбирать?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>Упрощённо <b>perplexity</b> задаёт эффективный масштаб локального соседства — примерно сколько соседей вокруг точки существенно учитывать.</p>
+        <ul>
+          <li>маленькая perplexity → очень локальный взгляд, больше внимания мелким структурам;</li>
+          <li>большая perplexity → учитывается более широкое окружение.</li>
+        </ul>
+        <p>Часто пробуют несколько значений, например <code>5, 10, 30, 50</code>, и проверяют устойчивость структуры.</p>
+        <div class="warning">Не стоит выбирать perplexity только потому, что картинка «красивее». Если кластеры исчезают при небольшом изменении параметра или random seed — выводы ненадёжны.</div>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Perplexity управляет масштабом соседства. Её не подбирают как обычную supervised-метрику; важно проверять несколько значений и устойчивость результата.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Можно ли поставить perplexity больше числа объектов?</p>
+          <div class="follow-a"><b>Ответ:</b> Нет. В практических реализациях perplexity должна быть меньше количества объектов.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 12">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q13" data-q="13" data-topic="t-SNE">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#13</span><span class="topic">t-SNE</span></div>
+          <h2>Как в t-SNE используется градиентный спуск?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>После задания сходств <code>P</code> в исходном пространстве t-SNE оптимизирует координаты точек <code>yᵢ</code> в 2D/3D.</p>
+        <div class="formula">L = KL(P || Q)</div>
+        <p>На каждой итерации вычисляется градиент:</p>
+        <div class="formula">∂L / ∂yᵢ</div>
+        <p>и координаты обновляются:</p>
+        <div class="formula">yᵢ ← yᵢ − η · ∂L/∂yᵢ</div>
+        <p><b>То есть обучаемыми параметрами являются сами координаты точек на карте.</b></p>
+        <p>Функция потерь невыпуклая, поэтому разные инициализации могут давать разные визуализации.</p>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Градиентный спуск оптимизирует не веса модели, а низкоразмерные координаты точек, минимизируя KL divergence.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему одинаковые данные могут дать разные t-SNE-картинки?</p>
+          <div class="follow-a"><b>Ответ:</b> Из-за невыпуклой функции потерь, случайной инициализации и чувствительности к параметрам.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 13">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q14" data-q="14" data-topic="t-SNE">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#14</span><span class="topic">t-SNE</span></div>
+          <h2>Как t-SNE сохраняет расположение кластеров?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <div class="warning"><b>Правильный ответ: глобальное расположение кластеров t-SNE не сохраняет гарантированно.</b></div>
+        <p>Он старается сохранить прежде всего:</p>
+        <ul><li>кто кому локально сосед.</li></ul>
+        <p>Но нельзя надёжно интерпретировать:</p>
+        <ul>
+          <li>точные расстояния между кластерами;</li>
+          <li>относительные размеры кластеров;</li>
+          <li>углы и ориентацию;</li>
+          <li>глобальную форму пространства.</li>
+        </ul>
+        <p>Если красный кластер визуально в два раза дальше от зелёного, чем синий, это не обязано иметь смысл в исходном пространстве.</p>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Сказать «никак, если речь о глобальном расположении». t-SNE оптимизирует локальные соседства, а не глобальные расстояния.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Можно ли по t-SNE доказать существование кластеров?</p>
+          <div class="follow-a"><b>Ответ:</b> Нет. t-SNE — в первую очередь средство визуализации. Наличие «островов» нужно подтверждать исходными данными и количественными методами.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 14">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q15" data-q="15" data-topic="t-SNE">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#15</span><span class="topic">t-SNE</span></div>
+          <h2>PCA vs t-SNE: плюсы и минусы</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <div class="table-wrap"><table>
+          <tr><th></th><th>PCA</th><th>t-SNE</th></tr>
+          <tr><td>Тип</td><td>линейный</td><td>нелинейный</td></tr>
+          <tr><td>Главная цель</td><td>сохранить дисперсию</td><td>сохранить локальные соседства</td></tr>
+          <tr><td>Скорость</td><td>обычно быстрее</td><td>обычно тяжелее</td></tr>
+          <tr><td>Интерпретация осей</td><td>возможна через нагрузки</td><td>почти отсутствует</td></tr>
+          <tr><td>Новые точки</td><td>легко transform</td><td>классический t-SNE неудобен</td></tr>
+          <tr><td>Глобальная структура</td><td>сохраняется лучше линейно</td><td>может сильно искажаться</td></tr>
+          <tr><td>Визуализация локальных групп</td><td>не всегда яркая</td><td>часто очень наглядная</td></tr>
+        </table></div>
+        <p><b>PCA</b> чаще используют как preprocessing/compression. <b>t-SNE</b> — прежде всего для визуализации.</p>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>PCA: линейный, быстрый, пригоден для transform. t-SNE: нелинейный, хорош для локальной 2D/3D-визуализации, но глобальная геометрия ненадёжна.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Зачем иногда делать PCA перед t-SNE?</p>
+          <div class="follow-a"><b>Ответ:</b> Чтобы предварительно уменьшить очень высокую размерность, убрать часть шума и ускорить t-SNE.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 15">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q16" data-q="16" data-topic="Иерархическая">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#16</span><span class="topic">Иерархическая</span></div>
+          <h2>Метрики расстояния и linkage в иерархической кластеризации</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p><b>Distance metric</b> определяет расстояние между отдельными объектами:</p>
+        <ul>
+          <li>Euclidean: <code>√Σ(xᵢ−yᵢ)²</code>;</li>
+          <li>Manhattan: <code>Σ|xᵢ−yᵢ|</code>;</li>
+          <li>cosine distance, Minkowski и другие.</li>
+        </ul>
+        <p><b>Linkage</b> определяет расстояние между уже образованными кластерами:</p>
+        <ul>
+          <li><b>single</b> — минимальное попарное расстояние; умеет вытянутые формы, но склонен к chaining;</li>
+          <li><b>complete</b> — максимальное попарное расстояние; тяготеет к компактным кластерам;</li>
+          <li><b>average</b> — среднее попарное расстояние; компромисс;</li>
+          <li><b>Ward</b> — выбирает слияние, минимально увеличивающее внутрикластерную дисперсию.</li>
+        </ul>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Разделить metric и linkage. Metric — между точками, linkage — правило расстояния/слияния кластеров.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему Ward нельзя бездумно сочетать с любой метрикой?</p>
+          <div class="follow-a"><b>Ответ:</b> Критерий Ward основан на росте суммы квадратов отклонений и естественно связан с евклидовой геометрией.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 16">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q17" data-q="17" data-topic="K-means">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#17</span><span class="topic">K-means</span></div>
+          <h2>Как начальные центроиды влияют на K-means?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>K-means минимизирует внутрикластерную сумму квадратов:</p>
+        <div class="formula">Σₖ Σₓᵢ∈Cₖ ||xᵢ − μₖ||²</div>
+        <p>Оптимизация может застрять в локальном минимуме, поэтому разные стартовые центроиды дают разные конечные решения.</p>
+        <p><b>K-means++</b> выбирает начальные центры более разумно: следующие центры предпочитаются дальше от уже выбранных.</p>
+        <p>Кроме того, алгоритм запускают несколько раз с разными инициализациями и оставляют вариант с минимальной inertia.</p>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Инициализация влияет, потому что задача невыпуклая. Основные способы улучшения: K-means++ и несколько запусков n_init.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Гарантирует ли K-means++ глобальный минимум?</p>
+          <div class="follow-a"><b>Ответ:</b> Нет. Он только улучшает старт и обычно снижает вероятность плохого локального решения.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 17">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q18" data-q="18" data-topic="Метрики">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#18</span><span class="topic">Метрики</span></div>
+          <h2>Какие метрики есть в задаче кластеризации?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p><b>Если истинных labels нет — внутренние метрики:</b></p>
+        <ul>
+          <li><b>Silhouette Score</b>: от −1 до 1, больше — лучше;</li>
+          <li><b>Davies–Bouldin</b>: меньше — лучше;</li>
+          <li><b>Calinski–Harabasz</b>: больше — лучше;</li>
+          <li><b>Inertia / WCSS</b>: для K-means, меньше — компактнее, но она почти всегда уменьшается при росте K.</li>
+        </ul>
+        <p><b>Если известны истинные классы — внешние метрики:</b></p>
+        <ul>
+          <li>ARI — Adjusted Rand Index;</li>
+          <li>AMI / NMI;</li>
+          <li>homogeneity, completeness, V-measure.</li>
+        </ul>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Разделить внутренние метрики без y_true и внешние метрики, когда эталонные labels известны.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему нельзя просто выбрать K по минимальной inertia?</p>
+          <div class="follow-a"><b>Ответ:</b> Потому что inertia монотонно уменьшается при увеличении числа кластеров и достигнет нуля, если каждый объект станет отдельным кластером.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 18">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q19" data-q="19" data-topic="K-means">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#19</span><span class="topic">K-means</span></div>
+          <h2>Как адаптировать K-means к категориальным признакам?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>Классический K-means плохо подходит категориям, потому что использует среднее значение как центроид и обычно евклидово расстояние.</p>
+        <p>Для категорий «Москва», «Казань», «Тбилиси» среднее значение не имеет смысла.</p>
+        <p>Варианты:</p>
+        <ul>
+          <li><b>One-Hot Encoding + K-means</b> — возможно, но геометрия расстояний не всегда содержательна;</li>
+          <li><b>K-modes</b> — для категориальных данных, вместо среднего использует моду;</li>
+          <li><b>K-prototypes</b> — для смешанных числовых и категориальных данных.</li>
+        </ul>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Объяснить проблему центроида-среднего и назвать One-Hot, K-modes, K-prototypes.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему label encoding категорий + K-means опасен?</p>
+          <div class="follow-a"><b>Ответ:</b> Числа 0,1,2 создают искусственный порядок и расстояния между категориями, которых в реальности может не быть.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 19">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q20" data-q="20" data-topic="DBSCAN">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#20</span><span class="topic">DBSCAN</span></div>
+          <h2>Как eps и min_samples влияют на DBSCAN?</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p><code>eps</code> — радиус локальной окрестности.</p>
+        <ul>
+          <li>слишком маленький <code>eps</code> → много noise и мелких кластеров;</li>
+          <li>слишком большой <code>eps</code> → разные группы сливаются.</li>
+        </ul>
+        <p><code>min_samples</code> — сколько точек должно быть в eps-окрестности, чтобы точка считалась core point.</p>
+        <ul>
+          <li>большой <code>min_samples</code> → требуем более высокой плотности;</li>
+          <li>маленький → кластер образуется легче.</li>
+        </ul>
+        <p><b>Выбор eps:</b> часто используют k-distance plot и ищут «колено» графика расстояния до k-го соседа.</p>
+        <div class="warning"><b>Неравномерная плотность:</b> один eps плохо подходит плотным и разреженным кластерам одновременно. Часто лучше OPTICS или HDBSCAN.</div>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>eps управляет радиусом, min_samples — требуемой локальной плотностью. Для разной плотности классический DBSCAN проблемен.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">Почему перед DBSCAN особенно важно масштабирование признаков?</p>
+          <div class="follow-a"><b>Ответ:</b> Потому что DBSCAN основан на расстояниях. Признак с большим численным масштабом может полностью доминировать в метрике.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 20">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+    <article class="question-card" id="q21" data-q="21" data-topic="DBSCAN">
+      <div class="q-head">
+        <div>
+          <div class="meta"><span class="num">#21</span><span class="topic">DBSCAN</span></div>
+          <h2>DBSCAN для обнаружения аномалий</h2>
+        </div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Показать ответ</button>
+      </div>
+
+      <div class="answer" hidden>
+        <section class="answer-main">
+          <h3>Эталонный ответ</h3>
+          
+        <p>DBSCAN делит точки на:</p>
+        <ul>
+          <li><b>core</b> — достаточно плотная окрестность;</li>
+          <li><b>border</b> — сама не core, но соседствует с core;</li>
+          <li><b>noise</b> — не попала ни в один плотный кластер.</li>
+        </ul>
+        <p>В популярных реализациях noise получает метку <code>-1</code>, поэтому такие точки можно использовать как кандидатов в аномалии.</p>
+        <p><b>Плюсы:</b></p>
+        <ul>
+          <li>не требует заранее размеченных аномалий;</li>
+          <li>умеет находить кластеры сложной формы;</li>
+          <li>одновременно кластеризует и выделяет шум.</li>
+        </ul>
+        <p><b>Минусы:</b> редкий, но нормальный кластер тоже может стать noise; результат чувствителен к eps, min_samples, масштабу и метрике.</p>
+        
+        </section>
+
+        <section class="must-hear">
+          <h3>🎯 Что должен услышать проверяющий</h3>
+          <p>Noise ≠ автоматически «истинная аномалия», а только объект вне найденных плотных областей. Это кандидат на аномалию.</p>
+        </section>
+
+        <details class="followup">
+          <summary>🧠 Допвопрос</summary>
+          <p class="follow-q">В чём преимущество DBSCAN перед K-means для аномалий?</p>
+          <div class="follow-a"><b>Ответ:</b> K-means принудительно относит каждый объект к одному из K кластеров. DBSCAN умеет явно оставить точки вне кластеров как noise.</div>
+        </details>
+      </div>
+
+      <div class="score-row" role="group" aria-label="Оценка ответа на вопрос 21">
+        <span>Оценка:</span>
+        <button class="score-btn" data-score="0" type="button">0</button>
+        <button class="score-btn" data-score="1" type="button">1</button>
+        <button class="score-btn" data-score="2" type="button">2</button>
+        <span class="score-label">не оценено</span>
+      </div>
+    </article>
+    
+  </section>
+
+  <footer class="footer">
+    Прогресс сохраняется в браузере автоматически. Для печати ответы раскрываются сами.
+  </footer>
+</div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "unsupervised_interview_scores_v1";
+  const cards = [...document.querySelectorAll(".question-card")];
+  const scoreNow = document.querySelector(".score-now");
+  const navButtons = [...document.querySelectorAll(".nav-q")];
+
+  function loadScores() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+    catch { return {}; }
+  }
+
+  let scores = loadScores();
+
+  function saveScores() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+  }
+
+  function updateScoreUI() {
+    let total = 0;
+    cards.forEach(card => {
+      const q = card.dataset.q;
+      const value = scores[q];
+      const btns = [...card.querySelectorAll(".score-btn")];
+      btns.forEach(b => b.classList.toggle("selected", String(value) === b.dataset.score));
+
+      const label = card.querySelector(".score-label");
+      if (value === undefined) label.textContent = "не оценено";
+      if (value === 0) label.textContent = "нужно повторить";
+      if (value === 1) label.textContent = "частичный ответ";
+      if (value === 2) label.textContent = "уверенно";
+
+      const nav = document.querySelector('.nav-q[data-target="q' + q + '"]');
+      if (nav) {
+        nav.classList.remove("scored-0","scored-1","scored-2");
+        if (value !== undefined) nav.classList.add("scored-" + value);
+      }
+
+      if (typeof value === "number") total += value;
+    });
+    scoreNow.textContent = total;
+  }
+
+  document.querySelectorAll(".toggle-answer").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".question-card");
+      const answer = card.querySelector(".answer");
+      const isHidden = answer.hasAttribute("hidden");
+      if (isHidden) {
+        answer.removeAttribute("hidden");
+        btn.textContent = "Скрыть ответ";
+        btn.setAttribute("aria-expanded","true");
+      } else {
+        answer.setAttribute("hidden","");
+        btn.textContent = "Показать ответ";
+        btn.setAttribute("aria-expanded","false");
+      }
+    });
+  });
+
+  document.querySelectorAll(".score-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const q = btn.closest(".question-card").dataset.q;
+      const val = Number(btn.dataset.score);
+      if (scores[q] === val) delete scores[q];
+      else scores[q] = val;
+      saveScores();
+      updateScoreUI();
+    });
+  });
+
+  function setAll(open) {
+    cards.forEach(card => {
+      const answer = card.querySelector(".answer");
+      const btn = card.querySelector(".toggle-answer");
+      if (open) {
+        answer.removeAttribute("hidden");
+        btn.textContent = "Скрыть ответ";
+        btn.setAttribute("aria-expanded","true");
+      } else {
+        answer.setAttribute("hidden","");
+        btn.textContent = "Показать ответ";
+        btn.setAttribute("aria-expanded","false");
+      }
+    });
+  }
+
+  document.getElementById("showAll").addEventListener("click", () => setAll(true));
+  document.getElementById("hideAll").addEventListener("click", () => setAll(false));
+
+  function jumpTo(card) {
+    card.scrollIntoView({behavior:"smooth", block:"start"});
+    card.classList.remove("flash");
+    void card.offsetWidth;
+    card.classList.add("flash");
+  }
+
+  navButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const card = document.getElementById(btn.dataset.target);
+      if (card) jumpTo(card);
+    });
+  });
+
+  document.getElementById("randomQ").addEventListener("click", () => {
+    const visible = cards.filter(c => !c.classList.contains("hidden-by-filter"));
+    if (!visible.length) return;
+    jumpTo(visible[Math.floor(Math.random() * visible.length)]);
+  });
+
+  document.getElementById("resetScores").addEventListener("click", () => {
+    if (!confirm("Сбросить все оценки?")) return;
+    scores = {};
+    saveScores();
+    updateScoreUI();
+  });
+
+  document.querySelectorAll(".topic-pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".topic-pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const filter = btn.dataset.filter;
+      cards.forEach(card => {
+        card.classList.toggle("hidden-by-filter", filter !== "all" && card.dataset.topic !== filter);
+      });
+    });
+  });
+
+  updateScoreUI();
+})();
+</script>
+</body>
+</html>

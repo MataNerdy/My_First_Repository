@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Интерактивный конспект по классам, ООП, магическим методам, протоколам и декораторам Python для подготовки к собеседованиям и лайвкодингу." />
+  <title>Python: ООП, магические методы и декораторы</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --surface-2: #f0f3f9;
+      --text: #1c2434;
+      --muted: #667085;
+      --border: #dce2ec;
+      --accent: #6d5dfc;
+      --accent-2: #4d3ee8;
+      --accent-soft: #eeecff;
+      --good: #13795b;
+      --good-soft: #e9f8f2;
+      --warn: #9a6700;
+      --warn-soft: #fff5d6;
+      --danger: #b42318;
+      --danger-soft: #fff0ee;
+      --code-bg: #151923;
+      --code-text: #edf2f7;
+      --shadow: 0 10px 30px rgba(34, 44, 76, 0.08);
+      --radius: 18px;
+    }
+
+    body.dark {
+      --bg: #10131a;
+      --surface: #171b24;
+      --surface-2: #202633;
+      --text: #eef2f7;
+      --muted: #a6afbf;
+      --border: #30394a;
+      --accent: #9b8cff;
+      --accent-2: #b7adff;
+      --accent-soft: #282340;
+      --good: #67d9b5;
+      --good-soft: #17372e;
+      --warn: #f6ca66;
+      --warn-soft: #3b311d;
+      --danger: #ff8f86;
+      --danger-soft: #3a2423;
+      --code-bg: #0c0f14;
+      --code-text: #f4f7fb;
+      --shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.62;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 18px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #8e78ff);
+      box-shadow: var(--shadow);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .search {
+      width: 100%;
+      padding: 11px 13px;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      margin-bottom: 16px;
+    }
+
+    .search:focus { border-color: var(--accent); }
+
+    .nav-title {
+      margin: 18px 8px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .nav a {
+      display: block;
+      padding: 9px 10px;
+      margin: 2px 0;
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .nav a:hover, .nav a.active {
+      color: var(--accent-2);
+      background: var(--accent-soft);
+    }
+
+    .side-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .side-actions button {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface-2);
+      border-radius: 11px;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 36px;
+    }
+
+    .content {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 34px;
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at top right, var(--accent-soft), transparent 40%),
+        var(--surface);
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-2);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hero h2 {
+      margin: 14px 0 10px;
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.04;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      max-width: 860px;
+      margin: 0;
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .metric {
+      padding: 15px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      color: var(--accent-2);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    section.topic {
+      scroll-margin-top: 18px;
+      margin: 26px 0;
+      padding: 26px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    section.topic.hidden { display: none; }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 29px;
+      line-height: 1.16;
+      letter-spacing: -0.025em;
+    }
+
+    .section-head p {
+      margin: 7px 0 0;
+      color: var(--muted);
+    }
+
+    .complete {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .complete input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    h3 {
+      margin: 28px 0 10px;
+      font-size: 21px;
+    }
+
+    h4 {
+      margin: 22px 0 8px;
+      font-size: 17px;
+    }
+
+    p { margin: 9px 0; }
+
+    ul, ol { padding-left: 22px; }
+    li { margin: 5px 0; }
+
+    code.inline, p code, li code, td code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    .code-wrap {
+      position: relative;
+      margin: 14px 0;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 0;
+      padding: 18px 18px 20px;
+      color: var(--code-text);
+      background: var(--code-bg);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      tab-size: 4;
+    }
+
+    pre code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13.5px;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      padding: 6px 9px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      color: #e8edf6;
+      background: rgba(255,255,255,0.08);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .copy-btn:hover { background: rgba(255,255,255,0.14); }
+
+    .callout {
+      margin: 16px 0;
+      padding: 15px 17px;
+      border-radius: 13px;
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .callout.good {
+      border-left-color: var(--good);
+      background: var(--good-soft);
+    }
+
+    .callout.warn {
+      border-left-color: var(--warn);
+      background: var(--warn-soft);
+    }
+
+    .callout.danger {
+      border-left-color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    .grid-2, .grid-3 {
+      display: grid;
+      gap: 14px;
+      margin: 14px 0;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .mini-card {
+      padding: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      border-radius: 14px;
+    }
+
+    .mini-card h4 { margin-top: 0; }
+
+    .diagram {
+      display: grid;
+      gap: 8px;
+      margin: 16px 0;
+      padding: 18px;
+      background: var(--surface-2);
+      border: 1px dashed var(--border);
+      border-radius: 15px;
+      text-align: center;
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    .arrow { color: var(--accent-2); font-weight: 800; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 11px;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--surface-2);
+      font-weight: 700;
+    }
+
+    details {
+      margin: 12px 0;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    summary {
+      padding: 14px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      background: var(--surface-2);
+    }
+
+    details > div {
+      padding: 4px 16px 16px;
+    }
+
+    .interview-answer {
+      padding: 17px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--surface-2);
+      font-size: 15px;
+    }
+
+    .quiz {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-2);
+    }
+
+    .quiz button {
+      margin-top: 9px;
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 9px;
+      color: white;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    .quiz-answer {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .quiz-answer.visible { display: block; }
+
+    .protocol-map td:first-child { white-space: nowrap; }
+
+    .footer {
+      padding: 28px 8px 12px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .mobile-bar {
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 10px 14px;
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+
+    .mobile-bar button {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 8px 10px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      overflow: hidden;
+      margin-top: 14px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), #8e78ff);
+      transition: width .25s ease;
+    }
+
+    .small-muted { color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        z-index: 30;
+        width: min(88vw, 320px);
+        transform: translateX(-105%);
+        transition: transform .22s ease;
+        box-shadow: var(--shadow);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .mobile-bar { display: flex; justify-content: space-between; align-items: center; }
+      .main { padding: 22px 15px 34px; }
+      .hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .hero { padding: 23px; }
+      .hero p { font-size: 16px; }
+      section.topic { padding: 19px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .section-head { display: block; }
+      .complete { margin-top: 12px; }
+      .hero-grid { grid-template-columns: 1fr 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+
+    @media print {
+      .sidebar, .mobile-bar, .copy-btn, .side-actions, .search, .complete, .quiz button { display: none !important; }
+      .app { display: block; }
+      .main { padding: 0; }
+      body { background: white; color: black; }
+      section.topic, .hero { box-shadow: none; break-inside: avoid; }
+      details > div { display: block; }
+      pre { white-space: pre-wrap; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mobile-bar">
+    <button id="menuBtn" type="button">☰ Содержание</button>
+    <button id="themeBtnMobile" type="button">Тема</button>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-icon">Py</div>
+        <div>
+          <h1>Python Interview Core</h1>
+          <p>ООП · dunder · декораторы</p>
+        </div>
+      </div>
+
+      <input id="searchInput" class="search" type="search" placeholder="Поиск по конспекту…" />
+
+      <div class="nav-title">Навигация</div>
+      <nav class="nav">
+        <a href="#map">Карта темы</a>
+        <a href="#classes">Классы и объекты</a>
+        <a href="#oop">Принципы ООП</a>
+        <a href="#methods">self и виды методов</a>
+        <a href="#protocols">Протоколы Python</a>
+        <a href="#repr-str">__repr__ и __str__</a>
+        <a href="#eq-hash">__eq__, is и hash</a>
+        <a href="#len-contains">__len__ и __contains__</a>
+        <a href="#iterators">__iter__ и итераторы</a>
+        <a href="#new-init">__new__ и __init__</a>
+        <a href="#context">__enter__ и __exit__</a>
+        <a href="#functions">Функции как объекты</a>
+        <a href="#closures">Замыкания</a>
+        <a href="#decorators">Декораторы</a>
+        <a href="#universal-decorator">Универсальная обёртка</a>
+        <a href="#cheatsheet">Шпаргалка</a>
+        <a href="#interview">Устные ответы</a>
+        <a href="#practice">Практика</a>
+      </nav>
+
+      <div class="side-actions">
+        <button id="themeBtn" type="button">🌗 Сменить тему</button>
+        <button id="expandBtn" type="button">Развернуть все ответы</button>
+        <button id="resetProgress" type="button">Сбросить прогресс</button>
+      </div>
+
+      <div class="small-muted" style="margin-top:16px;">
+        Прогресс разделов: <strong id="progressText">0%</strong>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+        <header class="hero">
+          <span class="eyebrow">Собеседование + лайвкодинг</span>
+          <h2>Классы, магические методы и декораторы Python</h2>
+          <p>
+            Цельный интерактивный конспект: от устройства класса и <code class="inline">self</code>
+            до протоколов <code class="inline">len</code>, <code class="inline">in</code>,
+            <code class="inline">for</code>, <code class="inline">with</code> и универсальных декораторов.
+          </p>
+
+          <div class="hero-grid">
+            <div class="metric"><strong>4</strong><span>принципа ООП</span></div>
+            <div class="metric"><strong>12+</strong><span>ключевых dunder-методов</span></div>
+            <div class="metric"><strong>3</strong><span>уровня понимания декораторов</span></div>
+            <div class="metric"><strong>1</strong><span>цельная карта Python-механики</span></div>
+          </div>
+        </header>
+
+        <section class="topic" id="map" data-title="Карта темы">
+          <div class="section-head">
+            <div>
+              <h2>Карта темы</h2>
+              <p>Как все части связаны между собой.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="map"> Пройдено</label>
+          </div>
+
+          <div class="diagram">
+            <div>класс → создаёт объекты</div>
+            <div class="arrow">↓</div>
+            <div>обычные методы + атрибуты + self</div>
+            <div class="arrow">↓</div>
+            <div>магические методы подключают объект к синтаксису Python</div>
+            <div class="arrow">↓</div>
+            <div>функции — объекты → замыкания → декораторы</div>
+          </div>
+
+          <table class="protocol-map">
+            <thead>
+              <tr><th>Синтаксис</th><th>Какой механизм включается</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>print(obj)</code></td><td><code>obj.__str__()</code>, запасной вариант — <code>__repr__</code></td></tr>
+              <tr><td><code>repr(obj)</code></td><td><code>obj.__repr__()</code></td></tr>
+              <tr><td><code>a == b</code></td><td><code>a.__eq__(b)</code>, при <code>NotImplemented</code> — обратная попытка</td></tr>
+              <tr><td><code>len(obj)</code></td><td><code>obj.__len__()</code></td></tr>
+              <tr><td><code>x in obj</code></td><td><code>obj.__contains__(x)</code>, затем перебор</td></tr>
+              <tr><td><code>for x in obj</code></td><td><code>iter(obj)</code> → <code>next(iterator)</code></td></tr>
+              <tr><td><code>Class(...)</code></td><td><code>__new__</code> → <code>__init__</code></td></tr>
+              <tr><td><code>with obj as x</code></td><td><code>__enter__</code> → блок → <code>__exit__</code></td></tr>
+              <tr><td><code>@decorator</code></td><td><code>func = decorator(func)</code></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="topic" id="classes" data-title="Классы и объекты">
+          <div class="section-head">
+            <div>
+              <h2>Классы и объекты</h2>
+              <p>Класс задаёт структуру и поведение, объект хранит конкретное состояние.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="classes"> Пройдено</label>
+          </div>
+
+          <div class="grid-2">
+            <div class="mini-card">
+              <h4>Класс</h4>
+              <p>Описание типа: какие у объектов будут атрибуты и методы.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Объект</h4>
+              <p>Конкретный экземпляр класса со своими значениями атрибутов.</p>
+            </div>
+          </div>
+
+          <div class="code-wrap"><pre><code>class Cat:
+    species = "Felis catus"       # атрибут класса
+
+    def __init__(self, name: str):
+        self.name = name           # атрибут экземпляра
+        self.toys: list[str] = []
+
+    def meow(self) -> str:
+        return f"{self.name}: мяу!"
+
+
+barsik = Cat("Барсик")
+murka = Cat("Мурка")
+
+print(barsik.name)      # Барсик
+print(murka.name)       # Мурка
+print(barsik is murka)  # False</code></pre></div>
+
+          <h3>Атрибут класса и атрибут экземпляра</h3>
+          <p>
+            Python сначала ищет атрибут у экземпляра, затем у класса и далее по MRO.
+            Изменяемые атрибуты класса разделяются всеми экземплярами.
+          </p>
+
+          <div class="callout danger">
+            <strong>Ловушка: общий изменяемый атрибут класса</strong>
+            <code class="inline">toys = []</code> внутри тела класса создаст один список для всех объектов.
+            Индивидуальный список нужно создавать в <code class="inline">__init__</code>.
+          </div>
+
+          <h3>Можно ли создать класс без <code>__init__</code>?</h3>
+          <p>Да. Будет использован <code>__init__</code> родительского класса, в простом случае — <code>object.__init__</code>.</p>
+
+          <div class="code-wrap"><pre><code>class Marker:
+    pass
+
+
+marker = Marker()   # работает
+marker.color = "red"
+
+# Marker("red") → TypeError:
+# базовый __init__ не принимает пользовательские аргументы</code></pre></div>
+        </section>
+
+        <section class="topic" id="oop" data-title="Принципы ООП">
+          <div class="section-head">
+            <div>
+              <h2>Принципы ООП</h2>
+              <p>Инкапсуляция, наследование, полиморфизм и абстракция.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="oop"> Пройдено</label>
+          </div>
+
+          <div class="grid-2">
+            <div class="mini-card">
+              <h4>Инкапсуляция</h4>
+              <p>Объединяем данные и методы, защищаем инварианты через публичный интерфейс.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Наследование</h4>
+              <p>Новый класс расширяет или переопределяет поведение родительского.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Полиморфизм</h4>
+              <p>Одинаковый интерфейс, разные реализации. В Python часто через duck typing.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Абстракция</h4>
+              <p>Показываем существенный интерфейс, скрываем детали реализации.</p>
+            </div>
+          </div>
+
+          <h3>Инкапсуляция</h3>
+          <div class="code-wrap"><pre><code>class BankAccount:
+    def __init__(self, balance: float = 0):
+        self._balance = balance
+
+    @property
+    def balance(self) -> float:
+        return self._balance
+
+    def withdraw(self, amount: float) -> None:
+        if amount <= 0:
+            raise ValueError("Сумма должна быть положительной")
+        if amount > self._balance:
+            raise ValueError("Недостаточно средств")
+
+        self._balance -= amount</code></pre></div>
+
+          <div class="callout">
+            <strong>Подчёркивания в Python</strong>
+            <code class="inline">_name</code> — соглашение «внутренняя деталь».
+            <code class="inline">__name</code> — name mangling, а не настоящая приватность.
+          </div>
+
+          <h3>Наследование и <code>super()</code></h3>
+          <div class="code-wrap"><pre><code>class Animal:
+    def __init__(self, name: str):
+        self.name = name
+
+    def speak(self) -> str:
+        return "..."
+
+
+class Cat(Animal):
+    def __init__(self, name: str, color: str):
+        super().__init__(name)
+        self.color = color
+
+    def speak(self) -> str:
+        return "Мяу"</code></pre></div>
+
+          <p>
+            <code class="inline">super()</code> следует порядку MRO и поэтому лучше прямого вызова
+            <code class="inline">Animal.__init__(self, ...)</code>, особенно при множественном наследовании.
+          </p>
+
+          <h3>Наследование или композиция</h3>
+          <table>
+            <thead><tr><th>Отношение</th><th>Подход</th><th>Пример</th></tr></thead>
+            <tbody>
+              <tr><td>is-a</td><td>наследование</td><td>Cat является Animal</td></tr>
+              <tr><td>has-a</td><td>композиция</td><td>Car содержит Engine</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Полиморфизм и duck typing</h3>
+          <div class="code-wrap"><pre><code>class Cat:
+    def speak(self) -> str:
+        return "Мяу"
+
+
+class VoiceAssistant:
+    def speak(self) -> str:
+        return "Чем могу помочь?"
+
+
+def announce(speaker) -> None:
+    print(speaker.speak())
+
+
+announce(Cat())
+announce(VoiceAssistant())</code></pre></div>
+
+          <p>Общий родительский класс не обязателен: важен поддерживаемый интерфейс.</p>
+        </section>
+
+        <section class="topic" id="methods" data-title="self и виды методов">
+          <div class="section-head">
+            <div>
+              <h2><code>self</code> и виды методов</h2>
+              <p>Как Python связывает функцию класса с конкретным объектом.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="methods"> Пройдено</label>
+          </div>
+
+          <div class="callout good">
+            <strong>Ключевая эквивалентность</strong>
+            <code class="inline">obj.method(x)</code> концептуально соответствует
+            <code class="inline">Class.method(obj, x)</code>.
+          </div>
+
+          <div class="code-wrap"><pre><code>class Cat:
+    def __init__(self, name: str):
+        self.name = name
+
+    def greet(self) -> str:
+        return f"Я {self.name}"
+
+
+cat = Cat("Барсик")
+
+cat.greet()
+Cat.greet(cat)</code></pre></div>
+
+          <p>
+            <code class="inline">self</code> не является ключевым словом, но это обязательное соглашение.
+            Он указывает на экземпляр, с которым работает метод.
+          </p>
+
+          <table>
+            <thead><tr><th>Вид метода</th><th>Первый аргумент</th><th>Доступ</th></tr></thead>
+            <tbody>
+              <tr><td>метод экземпляра</td><td><code>self</code></td><td>состояние конкретного объекта</td></tr>
+              <tr><td><code>@classmethod</code></td><td><code>cls</code></td><td>класс и его атрибуты</td></tr>
+              <tr><td><code>@staticmethod</code></td><td>нет автоматического</td><td>логически связанная утилита</td></tr>
+            </tbody>
+          </table>
+
+          <div class="code-wrap"><pre><code>class User:
+    kind = "human"
+
+    def __init__(self, name: str):
+        self.name = name
+
+    @classmethod
+    def from_email(cls, email: str) -> "User":
+        name = email.split("@")[0]
+        return cls(name)
+
+    @staticmethod
+    def is_valid_email(email: str) -> bool:
+        return "@" in email</code></pre></div>
+
+          <h3>MRO</h3>
+          <p>Порядок поиска методов можно посмотреть через <code class="inline">Class.mro()</code> или <code class="inline">Class.__mro__</code>.</p>
+        </section>
+
+        <section class="topic" id="protocols" data-title="Протоколы Python">
+          <div class="section-head">
+            <div>
+              <h2>Магические методы и протоколы</h2>
+              <p>Dunder-методы подключают объект к встроенному синтаксису языка.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="protocols"> Пройдено</label>
+          </div>
+
+          <div class="callout">
+            <strong>Протокол</strong>
+            Набор ожидаемых методов. Наследоваться от специального класса часто не требуется:
+            достаточно реализовать нужное поведение.
+          </div>
+
+          <table>
+            <thead><tr><th>Метод</th><th>Что включает</th></tr></thead>
+            <tbody>
+              <tr><td><code>__repr__</code></td><td>техническое представление</td></tr>
+              <tr><td><code>__str__</code></td><td>человекочитаемый вывод</td></tr>
+              <tr><td><code>__eq__</code></td><td>оператор <code>==</code></td></tr>
+              <tr><td><code>__hash__</code></td><td>ключи словарей и множества</td></tr>
+              <tr><td><code>__len__</code></td><td><code>len()</code> и резервно истинность</td></tr>
+              <tr><td><code>__contains__</code></td><td><code>in</code></td></tr>
+              <tr><td><code>__iter__</code>, <code>__next__</code></td><td>итерация</td></tr>
+              <tr><td><code>__new__</code>, <code>__init__</code></td><td>создание и инициализация</td></tr>
+              <tr><td><code>__enter__</code>, <code>__exit__</code></td><td>контекстный менеджер</td></tr>
+              <tr><td><code>__call__</code></td><td>вызываемый объект: <code>obj(...)</code></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="topic" id="repr-str" data-title="repr и str">
+          <div class="section-head">
+            <div>
+              <h2><code>__repr__</code> и <code>__str__</code></h2>
+              <p>Два строковых представления для разных аудиторий.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="repr-str"> Пройдено</label>
+          </div>
+
+          <div class="grid-2">
+            <div class="mini-card">
+              <h4><code>__str__</code></h4>
+              <p>Для пользователя. Читаемый, удобный вывод.</p>
+            </div>
+            <div class="mini-card">
+              <h4><code>__repr__</code></h4>
+              <p>Для разработчика. Точный, диагностический вывод.</p>
+            </div>
+          </div>
+
+          <div class="code-wrap"><pre><code>class Candidate:
+    def __init__(self, name: str, role: str):
+        self.name = name
+        self.role = role
+
+    def __str__(self) -> str:
+        return f"{self.name} — кандидат на {self.role}"
+
+    def __repr__(self) -> str:
+        return (
+            f"Candidate("
+            f"name={self.name!r}, "
+            f"role={self.role!r}"
+            f")"
+        )</code></pre></div>
+
+          <table>
+            <thead><tr><th>Выражение</th><th>Использует</th></tr></thead>
+            <tbody>
+              <tr><td><code>str(obj)</code>, <code>print(obj)</code>, <code>f"{obj}"</code></td><td><code>__str__</code></td></tr>
+              <tr><td><code>repr(obj)</code>, <code>f"{obj!r}"</code></td><td><code>__repr__</code></td></tr>
+              <tr><td><code>[obj]</code>, <code>{"x": obj}</code></td><td><code>__repr__</code> элементов</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout warn">
+            <strong>Безопасность</strong>
+            Не помещай в <code class="inline">__repr__</code> пароли, токены, API-ключи и другие секреты:
+            представление часто попадает в логи и traceback.
+          </div>
+
+          <div class="quiz">
+            <strong>Вопрос</strong>
+            <p>Если определён только <code>__repr__</code>, что выведет <code>print(obj)</code>?</p>
+            <button type="button" data-answer="a1">Показать ответ</button>
+            <div class="quiz-answer" id="a1">Python сможет использовать <code>__repr__</code> как запасной вариант для строкового вывода.</div>
+          </div>
+        </section>
+
+        <section class="topic" id="eq-hash" data-title="eq is hash">
+          <div class="section-head">
+            <div>
+              <h2><code>__eq__</code>, <code>is</code> и <code>__hash__</code></h2>
+              <p>Равенство значений, идентичность и контракт хеширования.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="eq-hash"> Пройдено</label>
+          </div>
+
+          <div class="grid-2">
+            <div class="mini-card"><h4><code>==</code></h4><p>Семантика равенства, заданная типом.</p></div>
+            <div class="mini-card"><h4><code>is</code></h4><p>Один ли это объект в памяти. Не переопределяется.</p></div>
+          </div>
+
+          <div class="code-wrap"><pre><code>class Candidate:
+    def __init__(self, name: str, role: str):
+        self.name = name
+        self.role = role
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Candidate):
+            return NotImplemented
+
+        return (self.name, self.role) == (other.name, other.role)</code></pre></div>
+
+          <h3>Почему <code>NotImplemented</code>, а не <code>False</code>?</h3>
+          <p>
+            <code class="inline">False</code> означает «я сравнил и объекты не равны».
+            <code class="inline">NotImplemented</code> означает «этот тип сравнения мне неизвестен»,
+            после чего Python может попробовать обратную реализацию второго объекта.
+          </p>
+
+          <div class="callout danger">
+            <strong>Не путать</strong>
+            <code class="inline">NotImplemented</code> — специальное значение.
+            <code class="inline">NotImplementedError</code> — исключение.
+          </div>
+
+          <h3><code>is None</code></h3>
+          <div class="code-wrap"><pre><code>if value is None:
+    ...
+
+# а не:
+if value == None:
+    ...</code></pre></div>
+
+          <p><code>==</code> может быть переопределён, <code>is</code> — нет.</p>
+
+          <h3>Контракт хеширования</h3>
+          <div class="callout good">
+            <strong>Обязательное правило</strong>
+            Если <code class="inline">a == b</code>, то должно быть
+            <code class="inline">hash(a) == hash(b)</code>.
+          </div>
+
+          <div class="code-wrap"><pre><code>class ImmutableCandidate:
+    def __init__(self, name: str, role: str):
+        self.name = name
+        self.role = role
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ImmutableCandidate):
+            return NotImplemented
+        return (self.name, self.role) == (other.name, other.role)
+
+    def __hash__(self) -> int:
+        return hash((self.name, self.role))</code></pre></div>
+
+          <p>
+            Поля, влияющие на хеш, нельзя изменять после помещения объекта в словарь или множество.
+            Поэтому хешируемые value-объекты обычно делают неизменяемыми.
+          </p>
+
+          <div class="code-wrap"><pre><code>from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Candidate:
+    name: str
+    role: str</code></pre></div>
+        </section>
+
+        <section class="topic" id="len-contains" data-title="len и contains">
+          <div class="section-head">
+            <div>
+              <h2><code>__len__</code> и <code>__contains__</code></h2>
+              <p>Длина, истинность и оператор принадлежности.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="len-contains"> Пройдено</label>
+          </div>
+
+          <div class="code-wrap"><pre><code>class SkillSet:
+    def __init__(self, skills: list[str]):
+        self._skills = list(skills)
+
+    def __len__(self) -> int:
+        return len(self._skills)
+
+    def __contains__(self, skill: object) -> bool:
+        return skill in self._skills</code></pre></div>
+
+          <div class="grid-2">
+            <div class="mini-card">
+              <h4>Контракт <code>__len__</code></h4>
+              <p>Возвращает неотрицательное целое число — логическое количество элементов.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Контракт <code>__contains__</code></h4>
+              <p>Обычно возвращает <code>bool</code> для проверки <code>item in obj</code>.</p>
+            </div>
+          </div>
+
+          <h3>Истинность объекта</h3>
+          <p>Если нет <code>__bool__</code>, Python использует <code>__len__</code>:</p>
+          <div class="code-wrap"><pre><code>empty = SkillSet([])
+filled = SkillSet(["Python"])
+
+bool(empty)   # False
+bool(filled)  # True</code></pre></div>
+
+          <h3>Fallback для <code>in</code></h3>
+          <div class="diagram">
+            <div>__contains__</div>
+            <div class="arrow">↓ если нет</div>
+            <div>перебор через __iter__</div>
+            <div class="arrow">↓ если нет</div>
+            <div>старый протокол через __getitem__</div>
+          </div>
+
+          <div class="callout warn">
+            <strong>Рекурсивная ошибка</strong>
+            Внутри <code class="inline">__len__</code> нельзя писать <code class="inline">len(self)</code>,
+            а внутри <code class="inline">__contains__</code> — <code class="inline">item in self</code>.
+            Это бесконечный повтор того же метода.
+          </div>
+        </section>
+
+        <section class="topic" id="iterators" data-title="iter и next">
+          <div class="section-head">
+            <div>
+              <h2><code>__iter__</code>, итераторы и цикл <code>for</code></h2>
+              <p>Iterable создаёт iterator, iterator выдаёт элементы по одному.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="iterators"> Пройдено</label>
+          </div>
+
+          <div class="diagram">
+            <div>iterable</div>
+            <div class="arrow">iter(obj) ↓</div>
+            <div>iterator</div>
+            <div class="arrow">next(iterator) ↓</div>
+            <div>элемент или StopIteration</div>
+          </div>
+
+          <table>
+            <thead><tr><th>Свойство</th><th>Iterable</th><th>Iterator</th></tr></thead>
+            <tbody>
+              <tr><td>Можно передать в <code>iter()</code></td><td>да</td><td>да</td></tr>
+              <tr><td>Можно передать в <code>next()</code></td><td>обычно нет</td><td>да</td></tr>
+              <tr><td>Хранит позицию обхода</td><td>обычно нет</td><td>да</td></tr>
+              <tr><td><code>iter(obj) is obj</code></td><td>обычно False</td><td>обычно True</td></tr>
+              <tr><td>Повторный обход</td><td>обычно возможен</td><td>обычно уже исчерпан</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Что делает <code>for</code></h3>
+          <div class="code-wrap"><pre><code>iterator = iter(collection)
+
+while True:
+    try:
+        item = next(iterator)
+    except StopIteration:
+        break
+
+    process(item)</code></pre></div>
+
+          <h3>Коллекция, использующая готовый итератор списка</h3>
+          <div class="code-wrap"><pre><code>from collections.abc import Iterator
+
+
+class SkillSet:
+    def __init__(self, skills: list[str]):
+        self._skills = list(skills)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._skills)</code></pre></div>
+
+          <h3>Отдельный класс итератора</h3>
+          <div class="code-wrap"><pre><code>class InclusiveRangeIterator:
+    def __init__(self, start: int, stop: int):
+        self._current = start
+        self._stop = stop
+
+    def __iter__(self) -> "InclusiveRangeIterator":
+        return self
+
+    def __next__(self) -> int:
+        if self._current > self._stop:
+            raise StopIteration
+
+        value = self._current
+        self._current += 1
+        return value
+
+
+class InclusiveRange:
+    def __init__(self, start: int, stop: int):
+        self.start = start
+        self.stop = stop
+
+    def __iter__(self) -> InclusiveRangeIterator:
+        return InclusiveRangeIterator(self.start, self.stop)</code></pre></div>
+
+          <div class="callout">
+            <strong>Правильное разделение</strong>
+            Коллекция создаёт новый итератор для каждого обхода.
+            Итератор хранит состояние одного конкретного обхода.
+          </div>
+
+          <details>
+            <summary>Генераторный вариант</summary>
+            <div>
+              <div class="code-wrap"><pre><code>from collections.abc import Iterator
+
+
+class SkillSet:
+    def __init__(self, skills: list[str]):
+        self._skills = list(skills)
+
+    def __iter__(self) -> Iterator[str]:
+        yield from self._skills</code></pre></div>
+              <p>Функция с <code>yield</code> создаёт генератор — готовый итератор.</p>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" id="new-init" data-title="new и init">
+          <div class="section-head">
+            <div>
+              <h2><code>__new__</code> и <code>__init__</code></h2>
+              <p>Создание объекта и настройка его начального состояния.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="new-init"> Пройдено</label>
+          </div>
+
+          <div class="diagram">
+            <div>Class(args)</div>
+            <div class="arrow">↓</div>
+            <div>obj = Class.__new__(Class, args)</div>
+            <div class="arrow">↓ если obj — экземпляр Class</div>
+            <div>Class.__init__(obj, args)</div>
+            <div class="arrow">↓</div>
+            <div>возвращается obj</div>
+          </div>
+
+          <table>
+            <thead><tr><th></th><th><code>__new__</code></th><th><code>__init__</code></th></tr></thead>
+            <tbody>
+              <tr><td>Первый аргумент</td><td><code>cls</code></td><td><code>self</code></td></tr>
+              <tr><td>Назначение</td><td>создать и вернуть объект</td><td>инициализировать объект</td></tr>
+              <tr><td>Возврат</td><td>объект</td><td>только <code>None</code></td></tr>
+              <tr><td>Нужен часто?</td><td>редко</td><td>да</td></tr>
+              <tr><td>Главный кейс</td><td>неизменяемые типы и контроль создания</td><td>обычные классы</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Обычный класс</h3>
+          <div class="code-wrap"><pre><code>class Cat:
+    def __init__(self, name: str):
+        self.name = name</code></pre></div>
+
+          <h3>Наследование от неизменяемого типа</h3>
+          <div class="code-wrap"><pre><code>class NormalizedString(str):
+    def __new__(cls, value: str):
+        normalized = value.strip().lower()
+
+        if not normalized:
+            raise ValueError("Строка не может быть пустой")
+
+        return super().__new__(cls, normalized)</code></pre></div>
+
+          <div class="callout danger">
+            <strong>Критичная ошибка</strong>
+            <code class="inline">__new__</code> обязан вернуть объект.
+            <code class="inline">__init__</code> не должен возвращать ничего, кроме <code class="inline">None</code>.
+          </div>
+
+          <h3>Когда нужен собственный <code>__new__</code></h3>
+          <ul>
+            <li>наследование от <code>str</code>, <code>int</code>, <code>tuple</code>;</li>
+            <li>кэширование или переиспользование экземпляров;</li>
+            <li>singleton/flyweight;</li>
+            <li>метапрограммирование;</li>
+            <li>возврат объекта другого типа.</li>
+          </ul>
+        </section>
+
+        <section class="topic" id="context" data-title="enter и exit">
+          <div class="section-head">
+            <div>
+              <h2><code>__enter__</code> и <code>__exit__</code></h2>
+              <p>Контекстные менеджеры и гарантированное освобождение ресурсов.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="context"> Пройдено</label>
+          </div>
+
+          <div class="diagram">
+            <div>with manager as value:</div>
+            <div class="arrow">↓</div>
+            <div>value = manager.__enter__()</div>
+            <div class="arrow">↓</div>
+            <div>выполнение блока</div>
+            <div class="arrow">↓ всегда после успешного входа</div>
+            <div>manager.__exit__(exc_type, exc_value, traceback)</div>
+          </div>
+
+          <div class="code-wrap"><pre><code>import time
+from types import TracebackType
+
+
+class Timer:
+    def __init__(self, name: str):
+        self.name = name
+        self.elapsed: float | None = None
+        self._start: float | None = None
+
+    def __enter__(self) -> "Timer":
+        self._start = time.perf_counter()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> bool:
+        if self._start is None:
+            raise RuntimeError("Таймер не был запущен")
+
+        self.elapsed = time.perf_counter() - self._start
+        print(f"{self.name}: {self.elapsed:.6f} секунд")
+
+        return False</code></pre></div>
+
+          <table>
+            <thead><tr><th>Возврат <code>__exit__</code></th><th>Результат</th></tr></thead>
+            <tbody>
+              <tr><td><code>False</code> или <code>None</code></td><td>исключение продолжает распространяться</td></tr>
+              <tr><td>истинное значение</td><td>исключение подавляется</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout warn">
+            <strong>Не возвращай <code>True</code> без причины</strong>
+            Иначе контекстный менеджер может скрыть ошибки программирования.
+          </div>
+
+          <h3>Эквивалентность с <code>try/finally</code></h3>
+          <div class="code-wrap"><pre><code>resource = acquire()
+
+try:
+    use(resource)
+finally:
+    release(resource)</code></pre></div>
+
+          <p>
+            Если <code class="inline">__enter__</code> выбросил исключение, <code class="inline">__exit__</code>
+            этого же менеджера не вызывается: вход не завершился успешно.
+          </p>
+        </section>
+
+        <section class="topic" id="functions" data-title="Функции как объекты">
+          <div class="section-head">
+            <div>
+              <h2>Функции как объекты первого класса</h2>
+              <p>Фундамент функций высшего порядка и декораторов.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="functions"> Пройдено</label>
+          </div>
+
+          <div class="callout good">
+            <strong>Главная мысль</strong>
+            Функцию можно сохранить в переменную, положить в коллекцию,
+            передать другой функции и вернуть как результат.
+          </div>
+
+          <div class="code-wrap"><pre><code>def greet(name: str) -> str:
+    return f"Привет, {name}!"
+
+
+say_hello = greet
+
+print(greet is say_hello)   # True
+print(say_hello("Любовь"))  # Привет, Любовь!</code></pre></div>
+
+          <h3>Функция и результат функции</h3>
+          <table>
+            <thead><tr><th>Запись</th><th>Смысл</th></tr></thead>
+            <tbody>
+              <tr><td><code>func</code></td><td>объект-функция</td></tr>
+              <tr><td><code>func()</code></td><td>вызов функции и его результат</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout danger">
+            <strong>Типичная ошибка</strong>
+            <code class="inline">execute(func())</code> передаёт результат.
+            <code class="inline">execute(func)</code> передаёт саму функцию.
+          </div>
+
+          <h3><code>Callable</code></h3>
+          <div class="code-wrap"><pre><code>from collections.abc import Callable
+
+
+def apply_operation(
+    a: float,
+    b: float,
+    operation: Callable[[float, float], float],
+) -> float:
+    return operation(a, b)</code></pre></div>
+
+          <p>
+            <code class="inline">Callable[[float, float], float]</code> —
+            вызываемый объект, принимающий два <code class="inline">float</code> и возвращающий <code class="inline">float</code>.
+          </p>
+
+          <h3>Вызываемые объекты</h3>
+          <div class="code-wrap"><pre><code>class Multiplier:
+    def __init__(self, factor: int):
+        self.factor = factor
+
+    def __call__(self, value: int) -> int:
+        return value * self.factor
+
+
+double = Multiplier(2)
+print(double(10))  # 20</code></pre></div>
+        </section>
+
+        <section class="topic" id="closures" data-title="Замыкания">
+          <div class="section-head">
+            <div>
+              <h2>Вложенные функции и замыкания</h2>
+              <p>Как функция сохраняет окружение внешней функции.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="closures"> Пройдено</label>
+          </div>
+
+          <h3>LEGB</h3>
+          <div class="diagram">
+            <div>Local → Enclosing → Global → Built-in</div>
+          </div>
+
+          <h3>Замыкание</h3>
+          <div class="code-wrap"><pre><code>from collections.abc import Callable
+
+
+def create_multiplier(
+    factor: float,
+) -> Callable[[float], float]:
+
+    def multiply(value: float) -> float:
+        return value * factor
+
+    return multiply
+
+
+double = create_multiplier(2)
+triple = create_multiplier(3)
+
+double(10)  # 20
+triple(10)  # 30</code></pre></div>
+
+          <p>
+            Внешняя функция уже завершилась, но внутренняя продолжает помнить значение
+            <code class="inline">factor</code>.
+          </p>
+
+          <h3><code>nonlocal</code></h3>
+          <div class="code-wrap"><pre><code>def create_counter():
+    count = 0
+
+    def increment() -> int:
+        nonlocal count
+        count += 1
+        return count
+
+    return increment</code></pre></div>
+
+          <p>
+            Без <code class="inline">nonlocal</code> присваивание сделало бы
+            <code class="inline">count</code> локальной переменной внутренней функции.
+          </p>
+
+          <h3>Позднее связывание</h3>
+          <div class="code-wrap"><pre><code>functions = []
+
+for number in range(3):
+    functions.append(lambda: number)
+
+print([function() for function in functions])
+# [2, 2, 2]</code></pre></div>
+
+          <p>Замыкания читают текущее значение одной общей переменной в момент вызова.</p>
+
+          <h4>Фиксация значения</h4>
+          <div class="code-wrap"><pre><code>functions = [
+    lambda number=number: number
+    for number in range(3)
+]
+
+print([function() for function in functions])
+# [0, 1, 2]</code></pre></div>
+        </section>
+
+        <section class="topic" id="decorators" data-title="Декораторы">
+          <div class="section-head">
+            <div>
+              <h2>Механика декораторов</h2>
+              <p>Декоратор принимает функцию и возвращает новую вызываемую сущность.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="decorators"> Пройдено</label>
+          </div>
+
+          <div class="callout">
+            <strong>Синтаксический сахар</strong>
+            <code class="inline">@logger</code> над функцией означает
+            <code class="inline">func = logger(func)</code>.
+          </div>
+
+          <div class="code-wrap"><pre><code>def logger(function):
+    def wrapper():
+        print("До вызова")
+        result = function()
+        print("После вызова")
+        return result
+
+    return wrapper
+
+
+@logger
+def say_hello() -> str:
+    return "Привет!"</code></pre></div>
+
+          <div class="diagram">
+            <div>исходная функция</div>
+            <div class="arrow">↓ передаётся</div>
+            <div>decorator(function)</div>
+            <div class="arrow">↓ возвращает</div>
+            <div>wrapper, который помнит function через замыкание</div>
+          </div>
+
+          <h3>Когда выполняется декоратор</h3>
+          <ul>
+            <li>внешняя функция-декоратор выполняется при определении функции, обычно при импорте модуля;</li>
+            <li>обёртка выполняется при каждом вызове декорированной функции.</li>
+          </ul>
+
+          <div class="quiz">
+            <strong>Вопрос</strong>
+            <p>Почему в конце декоратора нужно писать <code>return wrapper</code>, а не <code>return wrapper()</code>?</p>
+            <button type="button" data-answer="a2">Показать ответ</button>
+            <div class="quiz-answer" id="a2">
+              <code>return wrapper</code> возвращает сам объект-функцию.
+              <code>return wrapper()</code> немедленно вызовет обёртку во время декорирования и вернёт результат её работы.
+            </div>
+          </div>
+        </section>
+
+        <section class="topic" id="universal-decorator" data-title="Универсальный декоратор">
+          <div class="section-head">
+            <div>
+              <h2>Универсальный декоратор</h2>
+              <p><code>*args</code>, <code>**kwargs</code>, возврат результата и <code>functools.wraps</code>.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="universal-decorator"> Пройдено</label>
+          </div>
+
+          <h3><code>*args</code> и <code>**kwargs</code></h3>
+          <table>
+            <thead><tr><th>Конструкция</th><th>В определении</th><th>При вызове</th></tr></thead>
+            <tbody>
+              <tr><td><code>*args</code></td><td>собирает позиционные аргументы в tuple</td><td>распаковывает последовательность</td></tr>
+              <tr><td><code>**kwargs</code></td><td>собирает именованные аргументы в dict</td><td>распаковывает словарь</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Базовый шаблон</h3>
+          <div class="code-wrap"><pre><code>from functools import wraps
+
+
+def decorator(function):
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        # действия до вызова
+
+        result = function(*args, **kwargs)
+
+        # действия после вызова
+
+        return result
+
+    return wrapper</code></pre></div>
+
+          <div class="callout danger">
+            <strong>Три обязательные вещи</strong>
+            Обёртка принимает <code class="inline">*args, **kwargs</code>,
+            передаёт их как <code class="inline">function(*args, **kwargs)</code>
+            и возвращает результат.
+          </div>
+
+          <h3>Зачем <code>functools.wraps</code></h3>
+          <p>Без него декорированная функция теряет имя, документацию, аннотации и удобную introspection-информацию.</p>
+
+          <div class="code-wrap"><pre><code>from functools import wraps
+
+
+def logger(function):
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        print(f"Вызов {function.__name__}")
+        return function(*args, **kwargs)
+
+    return wrapper</code></pre></div>
+
+          <h3>Таймер, работающий и при исключении</h3>
+          <div class="code-wrap"><pre><code>import time
+from functools import wraps
+
+
+def timer(function):
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+
+        try:
+            return function(*args, **kwargs)
+        finally:
+            elapsed = time.perf_counter() - start
+            print(
+                f"{function.__name__}: "
+                f"{elapsed:.6f} секунд"
+            )
+
+    return wrapper</code></pre></div>
+
+          <h3>Счётчик вызовов</h3>
+          <div class="code-wrap"><pre><code>from functools import wraps
+
+
+def count_calls(function):
+    count = 0
+
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        nonlocal count
+        count += 1
+
+        print(f"{function.__name__}: вызов №{count}")
+        return function(*args, **kwargs)
+
+    return wrapper</code></pre></div>
+
+          <h3>Точная типизация</h3>
+          <div class="code-wrap"><pre><code>from collections.abc import Callable
+from functools import wraps
+from typing import ParamSpec, TypeVar
+
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def logger(
+    function: Callable[P, R],
+) -> Callable[P, R]:
+
+    @wraps(function)
+    def wrapper(
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> R:
+        print(f"Вызов {function.__name__}")
+        return function(*args, **kwargs)
+
+    return wrapper</code></pre></div>
+
+          <div class="callout warn">
+            <strong>Не возвращай значение из <code>finally</code></strong>
+            <code class="inline">return</code> внутри <code class="inline">finally</code>
+            способен перезаписать нормальный результат и даже подавить исключение.
+          </div>
+        </section>
+
+        <section class="topic" id="cheatsheet" data-title="Шпаргалка">
+          <div class="section-head">
+            <div>
+              <h2>Сверхкороткая шпаргалка</h2>
+              <p>То, что стоит воспроизводить без подсказки.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="cheatsheet"> Пройдено</label>
+          </div>
+
+          <table>
+            <thead><tr><th>Тема</th><th>Одна фраза</th></tr></thead>
+            <tbody>
+              <tr><td>Класс / объект</td><td>Класс описывает тип, объект хранит конкретное состояние.</td></tr>
+              <tr><td><code>self</code></td><td>Ссылка на экземпляр; <code>obj.m()</code> связывает объект с методом.</td></tr>
+              <tr><td>Инкапсуляция</td><td>Класс сам контролирует изменение своего состояния.</td></tr>
+              <tr><td>Наследование</td><td>Новый класс переиспользует и расширяет базовый.</td></tr>
+              <tr><td>Полиморфизм</td><td>Одинаковый интерфейс — разные реализации.</td></tr>
+              <tr><td><code>__repr__</code></td><td>Технический диагностический вывод.</td></tr>
+              <tr><td><code>__str__</code></td><td>Читаемый пользовательский вывод.</td></tr>
+              <tr><td><code>__eq__</code></td><td>Семантика <code>==</code>; неизвестный тип → <code>NotImplemented</code>.</td></tr>
+              <tr><td><code>is</code></td><td>Проверка идентичности, обычно <code>is None</code>.</td></tr>
+              <tr><td><code>__len__</code></td><td>Неотрицательное целое; резервно влияет на <code>bool(obj)</code>.</td></tr>
+              <tr><td><code>__contains__</code></td><td>Определяет <code>item in obj</code>.</td></tr>
+              <tr><td>Iterable</td><td>Из него можно получить iterator.</td></tr>
+              <tr><td>Iterator</td><td><code>__next__</code> возвращает элемент или бросает <code>StopIteration</code>.</td></tr>
+              <tr><td><code>__new__</code></td><td>Создаёт и возвращает объект.</td></tr>
+              <tr><td><code>__init__</code></td><td>Инициализирует готовый объект и возвращает <code>None</code>.</td></tr>
+              <tr><td><code>__enter__</code></td><td>Вход и значение после <code>as</code>.</td></tr>
+              <tr><td><code>__exit__</code></td><td>Очистка; truthy-возврат подавляет исключение.</td></tr>
+              <tr><td>Замыкание</td><td>Функция сохраняет доступ к переменным внешней функции.</td></tr>
+              <tr><td>Декоратор</td><td>Принимает функцию и возвращает новую вызываемую сущность.</td></tr>
+              <tr><td><code>@wraps</code></td><td>Сохраняет метаданные исходной функции.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="topic" id="interview" data-title="Устные ответы">
+          <div class="section-head">
+            <div>
+              <h2>Устные ответы для собеседования</h2>
+              <p>Формулировки на 30–60 секунд.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="interview"> Пройдено</label>
+          </div>
+
+          <details>
+            <summary>Класс и объект</summary>
+            <div class="interview-answer">
+              Класс описывает структуру и поведение объектов: атрибуты, методы и специальные протоколы.
+              Объект — конкретный экземпляр класса со своим состоянием. Разные экземпляры используют методы
+              одного класса, но хранят разные значения атрибутов.
+            </div>
+          </details>
+
+          <details>
+            <summary>Инкапсуляция, наследование и полиморфизм</summary>
+            <div class="interview-answer">
+              Инкапсуляция объединяет данные и методы и позволяет классу контролировать корректность своего состояния.
+              Наследование создаёт новый класс на основе существующего и позволяет переиспользовать или переопределять поведение.
+              Полиморфизм позволяет работать с разными объектами через общий интерфейс; в Python он часто основан на duck typing.
+            </div>
+          </details>
+
+          <details>
+            <summary><code>self</code></summary>
+            <div class="interview-answer">
+              <code>self</code> — ссылка на конкретный экземпляр. При вызове <code>obj.method()</code>
+              Python автоматически связывает объект с методом и передаёт его первым аргументом.
+              <code>self</code> не является ключевым словом, но это стандартное имя.
+            </div>
+          </details>
+
+          <details>
+            <summary><code>__repr__</code> и <code>__str__</code></summary>
+            <div class="interview-answer">
+              <code>__str__</code> отвечает за читаемый пользовательский вывод и используется функцией
+              <code>str</code> и обычно <code>print</code>. <code>__repr__</code> предназначен для разработчика,
+              отладки и представления объектов внутри контейнеров. Если <code>__str__</code> не реализован,
+              Python может использовать <code>__repr__</code> как запасной вариант.
+            </div>
+          </details>
+
+          <details>
+            <summary><code>__eq__</code>, <code>is</code> и <code>NotImplemented</code></summary>
+            <div class="interview-answer">
+              <code>__eq__</code> задаёт семантику оператора <code>==</code>. При неподдерживаемом типе
+              корректно вернуть <code>NotImplemented</code>, чтобы Python мог попробовать обратное сравнение.
+              <code>is</code> не сравнивает значения, а проверяет, являются ли две ссылки одним объектом;
+              основной практический случай — <code>is None</code>.
+            </div>
+          </details>
+
+          <details>
+            <summary>Iterable и iterator</summary>
+            <div class="interview-answer">
+              Итерируемый объект позволяет получить итератор через <code>iter</code>. Итератор хранит состояние обхода,
+              реализует <code>__next__</code> и выдаёт следующий элемент или бросает <code>StopIteration</code>.
+              Цикл <code>for</code> получает итератор и вызывает <code>next</code> до завершения.
+            </div>
+          </details>
+
+          <details>
+            <summary><code>__new__</code> и <code>__init__</code></summary>
+            <div class="interview-answer">
+              <code>__new__</code> создаёт и возвращает объект, а <code>__init__</code> инициализирует уже созданный экземпляр.
+              <code>__new__</code> особенно нужен при наследовании от неизменяемых типов или контроле создания экземпляров.
+              <code>__init__</code> обязан возвращать <code>None</code>.
+            </div>
+          </details>
+
+          <details>
+            <summary>Контекстный менеджер</summary>
+            <div class="interview-answer">
+              <code>__enter__</code> подготавливает ресурс и возвращает значение после <code>as</code>.
+              <code>__exit__</code> вызывается при выходе из успешно открытого контекста независимо от нормального завершения
+              или исключения, поэтому в нём освобождают ресурс. Истинное значение из <code>__exit__</code> подавляет исключение.
+            </div>
+          </details>
+
+          <details>
+            <summary>Замыкание и декоратор</summary>
+            <div class="interview-answer">
+              Замыкание — функция, сохраняющая доступ к переменным внешней функции после её завершения.
+              Декоратор принимает функцию и возвращает новую функцию или другой вызываемый объект.
+              Обёртка хранит исходную функцию в замыкании и добавляет поведение до или после вызова.
+              Запись <code>@decorator</code> эквивалентна <code>func = decorator(func)</code>.
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" id="practice" data-title="Практика">
+          <div class="section-head">
+            <div>
+              <h2>Практика и лайвкодинг</h2>
+              <p>Задачи, объединяющие несколько механизмов.</p>
+            </div>
+            <label class="complete"><input type="checkbox" data-progress="practice"> Пройдено</label>
+          </div>
+
+          <details>
+            <summary>Задача 1. Класс-коллекция SkillSet</summary>
+            <div>
+              <p>Реализовать <code>__len__</code>, <code>__contains__</code>, <code>__iter__</code> и <code>__repr__</code>.</p>
+              <div class="code-wrap"><pre><code>from collections.abc import Iterator
+
+
+class SkillSet:
+    def __init__(self, skills: list[str]):
+        self._skills = list(skills)
+
+    def __len__(self) -> int:
+        return len(self._skills)
+
+    def __contains__(self, skill: object) -> bool:
+        return skill in self._skills
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._skills)
+
+    def __repr__(self) -> str:
+        return f"SkillSet(skills={self._skills!r})"</code></pre></div>
+            </div>
+          </details>
+
+          <details>
+            <summary>Задача 2. ProfileBlock</summary>
+            <div>
+              <p>Контекстный менеджер, накапливающий длительности нескольких блоков.</p>
+              <div class="code-wrap"><pre><code>import time
+from types import TracebackType
+
+
+class ProfileBlock:
+    def __init__(self, name: str):
+        self.name = name
+        self._start: float | None = None
+        self._durations: list[float] = []
+
+    def __enter__(self) -> "ProfileBlock":
+        if self._start is not None:
+            raise RuntimeError("Профилировщик уже используется")
+
+        self._start = time.perf_counter()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> bool:
+        if self._start is None:
+            raise RuntimeError("Профилирование не запущено")
+
+        self._durations.append(
+            time.perf_counter() - self._start
+        )
+        self._start = None
+        return False
+
+    def get_stats(self) -> dict[str, int | float]:
+        if not self._durations:
+            return {
+                "count": 0,
+                "min": 0.0,
+                "max": 0.0,
+                "avg": 0.0,
+            }
+
+        return {
+            "count": len(self._durations),
+            "min": min(self._durations),
+            "max": max(self._durations),
+            "avg": sum(self._durations) / len(self._durations),
+        }</code></pre></div>
+            </div>
+          </details>
+
+          <details>
+            <summary>Задача 3. Декоратор timer</summary>
+            <div>
+              <p>Сохранить сигнатуру, вернуть результат и измерить время даже при исключении.</p>
+              <div class="code-wrap"><pre><code>import time
+from collections.abc import Callable
+from functools import wraps
+from typing import ParamSpec, TypeVar
+
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def timer(
+    function: Callable[P, R],
+) -> Callable[P, R]:
+
+    @wraps(function)
+    def wrapper(
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> R:
+        start = time.perf_counter()
+
+        try:
+            return function(*args, **kwargs)
+        finally:
+            elapsed = time.perf_counter() - start
+            print(
+                f"{function.__name__}: "
+                f"{elapsed:.6f} секунд"
+            )
+
+    return wrapper</code></pre></div>
+            </div>
+          </details>
+
+          <details>
+            <summary>Задача 4. Найти ошибки в декораторе</summary>
+            <div>
+              <div class="code-wrap"><pre><code>def broken(function):
+    def wrapper(args):
+        function(args)
+
+    return wrapper()</code></pre></div>
+              <p><strong>Ошибки:</strong></p>
+              <ol>
+                <li>обёртка не принимает <code>*args, **kwargs</code>;</li>
+                <li>аргументы не распаковываются;</li>
+                <li>результат исходной функции не возвращается;</li>
+                <li><code>return wrapper()</code> вызывает обёртку сразу;</li>
+                <li>не используется <code>functools.wraps</code>.</li>
+              </ol>
+            </div>
+          </details>
+
+          <div class="callout good">
+            <strong>Критерий готовности к интервью</strong>
+            Ты можешь объяснить каждую конструкцию за минуту, написать минимальный пример
+            и ответить, что произойдёт при ошибочном или пограничном сценарии.
+          </div>
+        </section>
+
+        <footer class="footer">
+          Интерактивный конспект по Python · работает офлайн · можно печатать в PDF через браузер
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const body = document.body;
+    const sidebar = document.getElementById("sidebar");
+    const searchInput = document.getElementById("searchInput");
+    const themeBtn = document.getElementById("themeBtn");
+    const themeBtnMobile = document.getElementById("themeBtnMobile");
+    const menuBtn = document.getElementById("menuBtn");
+    const expandBtn = document.getElementById("expandBtn");
+    const resetProgress = document.getElementById("resetProgress");
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+
+    const savedTheme = localStorage.getItem("python-guide-theme");
+    if (savedTheme === "dark") body.classList.add("dark");
+
+    function toggleTheme() {
+      body.classList.toggle("dark");
+      localStorage.setItem(
+        "python-guide-theme",
+        body.classList.contains("dark") ? "dark" : "light"
+      );
+    }
+
+    themeBtn.addEventListener("click", toggleTheme);
+    themeBtnMobile.addEventListener("click", toggleTheme);
+
+    menuBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("open");
+    });
+
+    document.querySelectorAll(".nav a").forEach(link => {
+      link.addEventListener("click", () => sidebar.classList.remove("open"));
+    });
+
+    document.querySelectorAll(".code-wrap").forEach(wrap => {
+      const button = document.createElement("button");
+      button.className = "copy-btn";
+      button.type = "button";
+      button.textContent = "Копировать";
+      wrap.appendChild(button);
+
+      button.addEventListener("click", async () => {
+        const code = wrap.querySelector("code").innerText;
+        try {
+          await navigator.clipboard.writeText(code);
+          button.textContent = "Скопировано";
+        } catch {
+          const area = document.createElement("textarea");
+          area.value = code;
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+          button.textContent = "Скопировано";
+        }
+        setTimeout(() => button.textContent = "Копировать", 1200);
+      });
+    });
+
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.trim().toLowerCase();
+
+      document.querySelectorAll("section.topic").forEach(section => {
+        const text = section.innerText.toLowerCase();
+        section.classList.toggle("hidden", query && !text.includes(query));
+      });
+    });
+
+    document.querySelectorAll("[data-answer]").forEach(button => {
+      button.addEventListener("click", () => {
+        const answer = document.getElementById(button.dataset.answer);
+        answer.classList.toggle("visible");
+        button.textContent = answer.classList.contains("visible")
+          ? "Скрыть ответ"
+          : "Показать ответ";
+      });
+    });
+
+    let expanded = false;
+    expandBtn.addEventListener("click", () => {
+      expanded = !expanded;
+      document.querySelectorAll("details").forEach(item => {
+        item.open = expanded;
+      });
+      expandBtn.textContent = expanded ? "Свернуть все ответы" : "Развернуть все ответы";
+    });
+
+    const progressBoxes = [...document.querySelectorAll("[data-progress]")];
+
+    function updateProgress() {
+      const done = progressBoxes.filter(box => box.checked).length;
+      const percent = Math.round((done / progressBoxes.length) * 100);
+      progressText.textContent = `${percent}%`;
+      progressFill.style.width = `${percent}%`;
+    }
+
+    progressBoxes.forEach(box => {
+      const key = `python-guide-progress:${box.dataset.progress}`;
+      box.checked = localStorage.getItem(key) === "1";
+
+      box.addEventListener("change", () => {
+        localStorage.setItem(key, box.checked ? "1" : "0");
+        updateProgress();
+      });
+    });
+
+    resetProgress.addEventListener("click", () => {
+      progressBoxes.forEach(box => {
+        box.checked = false;
+        localStorage.removeItem(`python-guide-progress:${box.dataset.progress}`);
+      });
+      updateProgress();
+    });
+
+    updateProgress();
+
+    const navLinks = [...document.querySelectorAll(".nav a")];
+    const sections = [...document.querySelectorAll("section.topic")];
+
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (!visible) return;
+
+      navLinks.forEach(link => {
+        link.classList.toggle(
+          "active",
+          link.getAttribute("href") === `#${visible.target.id}`
+        );
+      });
+    }, { rootMargin: "-15% 0px -70% 0px", threshold: [0.05, 0.2, 0.5] });
+
+    sections.forEach(section => observer.observe(section));
+  </script>
+</body>
+</html>
