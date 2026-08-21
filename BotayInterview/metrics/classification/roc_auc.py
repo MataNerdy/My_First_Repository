@@ -4,11 +4,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.datasets import load_breast_cancer
-from sklearn.metrics import (
-    auc,
-    confusion_matrix,
-    roc_curve
-)
+from sklearn.metrics import auc, confusion_matrix, roc_curve
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
