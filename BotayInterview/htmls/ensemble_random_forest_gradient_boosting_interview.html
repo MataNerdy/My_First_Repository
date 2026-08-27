@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ансамбли, Random Forest и Gradient Boosting — тренажёр к собеседованию</title>
+<style>
+:root {
+  --bg:#f4f6fb; --panel:#fff; --text:#1d2330; --muted:#667085; --line:#e5e9f2;
+  --accent:#5b5bd6; --accent2:#7a5af8; --soft:#f0efff; --key:#f8f7ff;
+  --shadow:0 12px 35px rgba(28,39,76,.08);
+  --rf:#e9f7ef; --rfText:#26734a;
+  --boost:#f2ebff; --boostText:#7047b7;
+  --bv:#fff4df; --bvText:#94651b;
+  --libs:#eaf3ff; --libsText:#316ca5;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(122,90,248,.08), transparent 33rem),
+    radial-gradient(circle at top right, rgba(91,91,214,.07), transparent 28rem),
+    var(--bg);
+  color:var(--text);line-height:1.65;
+}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 18px 60px}
+.hero{
+  background:linear-gradient(135deg,#20263b,#3a3476);color:#fff;border-radius:26px;
+  padding:34px 30px;box-shadow:var(--shadow);margin-bottom:22px;position:relative;overflow:hidden
+}
+.hero:after{content:"";position:absolute;right:-70px;top:-95px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.055)}
+.hero h1{margin:0 0 8px;font-size:clamp(28px,5vw,46px);line-height:1.08;position:relative;z-index:1}
+.hero p{margin:0;color:#d9dcff;font-size:16px;max-width:820px;position:relative;z-index:1}
+.hero .mini{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;position:relative;z-index:1}
+.hero .mini span{font-size:12px;font-weight:800;padding:6px 10px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.08)}
+.toolbar{
+  position:sticky;top:8px;z-index:10;display:flex;flex-wrap:wrap;gap:10px;
+  background:rgba(244,246,251,.9);backdrop-filter:blur(12px);padding:10px 0 12px
+}
+button,.search,.select{font:inherit}
+.ctrl,.select{
+  border:1px solid var(--line);background:#fff;color:var(--text);border-radius:12px;padding:10px 14px;
+  box-shadow:0 3px 12px rgba(35,42,70,.04)
+}
+.ctrl{cursor:pointer}
+.ctrl:hover,.select:hover{border-color:#cfd4e6}
+.search{
+  flex:1;min-width:230px;border:1px solid var(--line);background:#fff;border-radius:12px;
+  padding:10px 14px;outline:none
+}
+.search:focus,.select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,91,214,.12);outline:none}
+.progress{font-size:13px;color:var(--muted);margin:4px 2px 14px}
+.quiz-note{
+  margin:14px 0 20px;padding:13px 15px;border-radius:12px;background:#fff9e8;
+  border:1px solid #f2e2a7;color:#6b5b20
+}
+.summary{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 18px
+}
+.summary .s{
+  background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:0 5px 14px rgba(34,45,78,.03)
+}
+.summary .s b{display:block;margin-bottom:3px}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:18px;margin:12px 0;
+  overflow:hidden;box-shadow:0 6px 18px rgba(34,45,78,.035)
+}
+.question{
+  width:100%;border:0;background:transparent;text-align:left;display:grid;
+  grid-template-columns:42px 1fr 26px;gap:12px;align-items:center;padding:18px;cursor:pointer;color:var(--text)
+}
+.question:hover{background:#fafbff}
+.num{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--soft);color:var(--accent);font-weight:850}
+.qwrap{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.qtext{font-weight:780;font-size:16px}
+.tag{font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.035em;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--accent)}
+.topic-rf .tag{background:var(--rf);color:var(--rfText)}
+.topic-boost .tag{background:var(--boost);color:var(--boostText)}
+.topic-bv .tag{background:var(--bv);color:var(--bvText)}
+.topic-libs .tag{background:var(--libs);color:var(--libsText)}
+.chev{font-size:24px;color:var(--muted);transition:.2s transform}
+.card.open .chev{transform:rotate(180deg)}
+.answer{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
+.card.open .answer{grid-template-rows:1fr}
+.answer-inner{overflow:hidden;padding:0 22px}
+.card.open .answer-inner{padding:0 22px 24px}
+.answer p{margin:.72em 0}
+.answer ul,.answer ol{padding-left:22px}
+.answer h4{margin:18px 0 6px;font-size:15px}
+.formula{
+  margin:12px 0;padding:12px 14px;border-radius:12px;background:#f7f8fc;border:1px solid #eaedf5;
+  font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;overflow-x:auto;font-size:15px
+}
+.formula-inline{font-family:"SFMono-Regular",Consolas,monospace;background:#f5f6fa;padding:2px 5px;border-radius:6px}
+.key{margin:14px 0;padding:13px 15px;border-radius:12px;background:var(--key);border-left:4px solid var(--accent2);font-weight:650}
+.interview{margin:14px 0;padding:13px 15px;border-radius:12px;background:#eef7ff;border-left:4px solid #4b8bd8}
+.warning{margin:14px 0;padding:13px 15px;border-radius:12px;background:#fff7e8;border-left:4px solid #e0a02b}
+.two,.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.two>div,.compare>div{padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fafbfe}
+table{width:100%;border-collapse:collapse;margin:12px 0;display:table}
+th,td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}
+th{background:#f7f8fc}
+code{font-family:"SFMono-Regular",Consolas,monospace;background:#f5f6fa;padding:2px 5px;border-radius:6px}
+.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:30px}
+.hidden{display:none}
+@media (max-width:720px){
+  .hero{padding:26px 22px;border-radius:20px}
+  .summary,.two,.compare{grid-template-columns:1fr}
+  .question{grid-template-columns:36px 1fr 20px;padding:15px 14px;gap:9px}
+  .num{width:34px;height:34px} .qtext{font-size:15px}
+  .card.open .answer-inner{padding:0 16px 20px} .answer-inner{padding:0 16px}
+  table{display:block;overflow-x:auto;white-space:normal}
+  .select{flex:1}
+}
+@media print{
+  body{background:#fff} .toolbar,.progress{display:none} .wrap{max-width:none;padding:0}
+  .hero{box-shadow:none} .card{box-shadow:none;break-inside:avoid}
+  .answer{display:block!important} .answer-inner{overflow:visible!important;padding:0 18px 18px!important}
+  .chev{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>Ансамбли, Random Forest и Gradient Boosting</h1>
+  <p>22 вопроса к ML-собеседованию: сначала сформулируй ответ сама, затем раскрой карточку и сверяй логику, формулы и короткую собеседовательную версию.</p>
+  <div class="mini"><span>Bagging</span><span>Bias–Variance</span><span>Random Forest</span><span>Gradient Boosting</span><span>CatBoost</span><span>XGBoost</span><span>LightGBM</span></div>
+</header>
+
+<div class="toolbar">
+  <input id="search" class="search" placeholder="Поиск: bootstrap, OOB, learning rate, CatBoost…">
+  <select id="topic" class="select" aria-label="Фильтр по теме">
+    <option value="">Все темы</option>
+    <option>Ансамбли</option><option>Bias–Variance</option><option>Random Forest</option><option>Boosting</option><option>Библиотеки</option>
+  </select>
+  <button class="ctrl" id="expand">Раскрыть всё</button>
+  <button class="ctrl" id="collapse">Скрыть всё</button>
+  <button class="ctrl" id="random">Случайный вопрос</button>
+</div>
+<div class="progress" id="progress">Показано 22 из 22 вопросов</div>
+
+<div class="quiz-note"><b>Режим тренировки:</b> читай только вопрос, отвечай вслух 30–60 секунд, затем раскрывай карточку. Для вопросов 6–7 и 20 особенно важно не заучить текст, а восстановить причинно-следственную связь.</div>
+
+<div class="summary">
+  <div class="s"><b>🌲 Random Forest</b>Независимые деревья + bootstrap + случайные признаки + усреднение → прежде всего <b>↓ variance</b>.</div>
+  <div class="s"><b>🚀 Gradient Boosting</b>Последовательные деревья, каждое исправляет текущую ошибку → особенно хорошо <b>↓ bias</b>, но ансамбль нужно регуляризовать.</div>
+</div>
+
+<main id="cards">
+
+    <section class="card topic-ensemble" data-index="1" data-topic="Ансамбли">
+      <button class="question" aria-expanded="false">
+        <span class="num">1</span>
+        <span class="qwrap">
+          <span class="tag">Ансамблирование</span>
+          <span class="qtext">Что такое ансамблирование и зачем оно нужно?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p><b>Ансамблирование</b> — это объединение предсказаний нескольких моделей в одно итоговое предсказание.</p>
+<p>Идея: несколько неидеальных моделей могут вместе работать лучше одной, особенно если их ошибки не полностью совпадают.</p>
+<ul>
+<li><b>Bagging</b> — модели обучаются независимо, затем их ответы усредняются / голосуются. Главный пример — Random Forest.</li>
+<li><b>Boosting</b> — модели строятся последовательно, новая модель исправляет ошибки текущего ансамбля.</li>
+<li><b>Stacking</b> — предсказания базовых моделей подаются мета-модели, которая учится их комбинировать.</li>
+</ul>
+<div class="key">Ансамблирование повышает качество и устойчивость за счёт объединения нескольких моделей.</div>
+<div class="interview"><b>На собесе:</b> «Bagging в первую очередь уменьшает variance, boosting — последовательно уменьшает ошибку и обычно хорошо снижает bias».</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="2" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">2</span>
+        <span class="qwrap">
+          <span class="tag">Random Forest</span>
+          <span class="qtext">Что такое случайный лес и как он работает?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p><b>Random Forest</b> — ансамбль деревьев решений, в котором деревья специально делают разными.</p>
+<ol>
+<li>Для каждого дерева строится <b>bootstrap-выборка</b> из исходных объектов.</li>
+<li>В каждом узле при поиске split рассматривается только <b>случайное подмножество признаков</b>.</li>
+<li>Строится много деревьев.</li>
+<li>Предсказания объединяются.</li>
+</ol>
+<p>Регрессия:</p>
+<div class="formula">ŷ = (1 / T) · Σ fₜ(x)</div>
+<p>Классификация: обычно усредняются вероятности классов, после чего выбирается класс с максимальной вероятностью.</p>
+<div class="key">Случайность есть в двух местах: <b>объекты + признаки</b>. Это декоррелирует деревья.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="3" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">3</span>
+        <span class="qwrap">
+          <span class="tag">Random Forest</span>
+          <span class="qtext">Как случайный лес уменьшает переобучение по сравнению с одиночным деревом решений?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p>Глубокое дерево обычно имеет <b>низкий bias, но высокий variance</b>: оно легко подстраивается под train и сильно меняется при небольшом изменении данных.</p>
+<p>Random Forest усредняет много разных деревьев:</p>
+<div class="formula">f_RF(x) = (1 / T) · Σ fₜ(x)</div>
+<p>Случайные ошибки отдельных деревьев частично компенсируют друг друга, поэтому variance ансамбля становится меньше.</p>
+<p>Но усреднение помогает только если деревья не полностью одинаковые. Поэтому используются:</p>
+<ul>
+<li>разные bootstrap-выборки;</li>
+<li>случайные подмножества признаков.</li>
+</ul>
+<div class="key">Random Forest борется с переобучением одиночного дерева прежде всего через <b>уменьшение variance</b>.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="4" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">4</span>
+        <span class="qwrap">
+          <span class="tag">Bootstrap</span>
+          <span class="qtext">Что такое bootstrap техника?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p><b>Bootstrap</b> — случайное семплирование <b>с возвращением</b>.</p>
+<div class="formula">Исходные объекты: A B C D E<br>Bootstrap: A C C E B</div>
+<p>Объект <span class="formula-inline">C</span> может попасть несколько раз, а <span class="formula-inline">D</span> — вообще не попасть.</p>
+<p>Если из <span class="formula-inline">N</span> объектов сделать <span class="formula-inline">N</span> выборов с возвращением, вероятность конкретному объекту не попасть ни разу:</p>
+<div class="formula">(1 − 1/N)<sup>N</sup> ≈ e<sup>−1</sup> ≈ 0.368</div>
+<p>Поэтому в bootstrap sample в среднем около <b>63.2% уникальных объектов</b>, а около <b>36.8%</b> остаются вне выборки.</p>
+<div class="key">Объекты, не попавшие в bootstrap конкретного дерева, называются <b>out-of-bag (OOB)</b> объектами для этого дерева.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="5" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">5</span>
+        <span class="qwrap">
+          <span class="tag">Гиперпараметры</span>
+          <span class="qtext">Какие гиперпараметры важны для настройки случайного леса?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<table>
+<thead><tr><th>Параметр</th><th>Что делает</th></tr></thead>
+<tbody>
+<tr><td><code>n_estimators</code></td><td>Количество деревьев. Больше → стабильнее, но дороже по времени и памяти.</td></tr>
+<tr><td><code>max_depth</code></td><td>Ограничивает глубину дерева.</td></tr>
+<tr><td><code>max_features</code></td><td>Сколько признаков рассматривается при split. Важен для декорреляции деревьев.</td></tr>
+<tr><td><code>min_samples_split</code></td><td>Минимум объектов для разделения узла.</td></tr>
+<tr><td><code>min_samples_leaf</code></td><td>Минимум объектов в листе.</td></tr>
+<tr><td><code>bootstrap</code></td><td>Использовать ли bootstrap.</td></tr>
+<tr><td><code>max_samples</code></td><td>Размер bootstrap sample.</td></tr>
+<tr><td><code>criterion</code></td><td>Критерий качества split.</td></tr>
+</tbody></table>
+<div class="key">Для контроля сложности особенно важны <code>max_depth</code>, <code>min_samples_leaf</code>; для разнообразия деревьев — <code>max_features</code>.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-bv" data-index="6" data-topic="Bias–Variance">
+      <button class="question" aria-expanded="false">
+        <span class="num">6</span>
+        <span class="qwrap">
+          <span class="tag">Bias–Variance</span>
+          <span class="qtext">Что такое bias variance tradeoff?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p>Упрощённо ожидаемую ошибку можно представить как:</p>
+<div class="formula">Error ≈ Bias² + Variance + Noise</div>
+<p><b>Bias</b> — систематическая ошибка из-за слишком сильных ограничений модели. Высокий bias связан с underfitting.</p>
+<p><b>Variance</b> — чувствительность модели к конкретной обучающей выборке. Высокий variance связан с overfitting.</p>
+<div class="formula">
+простая модель → ↑ bias, ↓ variance<br>
+сложная модель → ↓ bias, ↑ variance
+</div>
+<div class="key">Tradeoff — поиск такой сложности модели, при которой мы не слишком недообучаемся и не слишком подгоняемся под train.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-bv" data-index="7" data-topic="Bias–Variance">
+      <button class="question" aria-expanded="false">
+        <span class="num">7</span>
+        <span class="qwrap">
+          <span class="tag">Сравнение</span>
+          <span class="qtext">Опишите линейную регрессию, случайный лес и градиентный бустинг с точки зрения bias variance tradeoff.</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<table>
+<thead><tr><th>Модель</th><th>Bias</th><th>Variance</th><th>Интуиция</th></tr></thead>
+<tbody>
+<tr><td>Linear Regression</td><td>обычно выше</td><td>обычно ниже</td><td>Сильные ограничения на форму зависимости.</td></tr>
+<tr><td>Глубокое Decision Tree</td><td>низкий</td><td>высокий</td><td>Очень гибко подстраивается под train.</td></tr>
+<tr><td>Random Forest</td><td>низкий / умеренный</td><td>ниже, чем у дерева</td><td>Усреднение снижает variance.</td></tr>
+<tr><td>Gradient Boosting</td><td>очень низкий</td><td>может расти</td><td>Последовательно исправляет ошибки, но сложный ансамбль можно переобучить.</td></tr>
+</tbody></table>
+<div class="warning"><b>Нюанс:</b> нельзя говорить «линейная регрессия всегда имеет высокий bias». Если реальная зависимость линейна, её bias может быть маленьким.</div>
+<div class="key">RF особенно силён в снижении variance, boosting — в последовательном снижении bias.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="8" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">8</span>
+        <span class="qwrap">
+          <span class="tag">Feature importance</span>
+          <span class="qtext">Как определяется важность признаков в случайном лесе?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p>Классический вариант — <b>Mean Decrease in Impurity (MDI)</b>.</p>
+<p>Если split по признаку сильно уменьшил impurity, признак получает большую важность:</p>
+<div class="formula">ΔI = I(parent) − (N<sub>L</sub>/N)·I(L) − (N<sub>R</sub>/N)·I(R)</div>
+<p>Уменьшение impurity суммируется по узлам и затем по деревьям.</p>
+<p>В sklearn:</p>
+<div class="formula">model.feature_importances_</div>
+<p>Альтернатива — <b>permutation importance</b>: перемешать значения признака и посмотреть, насколько ухудшилась метрика.</p>
+<div class="warning">MDI может завышать важность некоторых признаков, например признаков с большим числом возможных значений.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="9" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">9</span>
+        <span class="qwrap">
+          <span class="tag">OOB</span>
+          <span class="qtext">Что такое out-of-bag (OOB) оценка в случайном лесе?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p>Для каждого дерева часть объектов не попадает в его bootstrap sample — это его <b>OOB-объекты</b>.</p>
+<p>Чтобы оценить объект <span class="formula-inline">xᵢ</span>:</p>
+<ol>
+<li>берём только деревья, которые <b>не обучались</b> на <span class="formula-inline">xᵢ</span>;</li>
+<li>получаем их предсказания;</li>
+<li>агрегируем их;</li>
+<li>сравниваем с истинным <span class="formula-inline">yᵢ</span>.</li>
+</ol>
+<div class="key">OOB — почти встроенная validation-оценка без отдельного отрезания validation set.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="10" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">10</span>
+        <span class="qwrap">
+          <span class="tag">Шум</span>
+          <span class="qtext">Почему случайный лес устойчив к шуму в данных?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p>Шум может испортить отдельное дерево, но из-за bootstrap и случайного выбора признаков он обычно не воздействует одинаково на все деревья.</p>
+<p>Затем ответы большого числа деревьев усредняются, и часть случайных ошибок сглаживается.</p>
+<div class="formula">разные данные + разные признаки + усреднение → ниже variance</div>
+<div class="warning">Random Forest не неуязвим: сильный label noise, много мусорных признаков или систематический шум всё равно ухудшают качество.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="11" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">11</span>
+        <span class="qwrap">
+          <span class="tag">NaN</span>
+          <span class="qtext">Как случайный лес обрабатывает пропущенные значения в данных?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p><b>Зависит от реализации.</b></p>
+<p>Классический подход — сначала сделать импутацию:</p>
+<div class="formula">NaN → median / most_frequent / KNN / другой imputer → Random Forest</div>
+<p>В современных реализациях некоторых библиотек есть нативная обработка пропусков. Например, актуальные реализации sklearn Random Forest умеют обучать направление для NaN при split.</p>
+<div class="key">На собеседовании лучше не говорить категорично «Random Forest не умеет NaN». Уточняем конкретную библиотеку и версию.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="12" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">12</span>
+        <span class="qwrap">
+          <span class="tag">Плюсы / минусы</span>
+          <span class="qtext">Какие преимущества и недостатки случайного леса по сравнению с другими алгоритмами ансамблирования?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<div class="two">
+<div>
+<h4>Плюсы</h4>
+<ul>
+<li>надёжный baseline;</li>
+<li>мало preprocessing;</li>
+<li>не нужен scaling;</li>
+<li>ловит нелинейности и interactions;</li>
+<li>устойчивее одиночного дерева;</li>
+<li>есть OOB-оценка;</li>
+<li>деревья легко обучать параллельно;</li>
+<li>обычно проще тюнить, чем boosting.</li>
+</ul>
+</div>
+<div>
+<h4>Минусы</h4>
+<ul>
+<li>часто уступает хорошо настроенному boosting на табличных данных;</li>
+<li>может занимать много памяти;</li>
+<li>тысячи деревьев замедляют inference;</li>
+<li>хуже интерпретируется, чем одно дерево;</li>
+<li>MDI importance может быть вводящей в заблуждение;</li>
+<li>как и другие деревья, плохо экстраполирует.</li>
+</ul>
+</div>
+</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="13" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">13</span>
+        <span class="qwrap">
+          <span class="tag">Оптимизация</span>
+          <span class="qtext">Как можно ускорить обучение случайного леса на больших данных?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<ul>
+<li><b>Параллелить деревья</b>: например, <code>n_jobs=-1</code> в sklearn.</li>
+<li>Уменьшить <code>n_estimators</code>, если деревьев уже достаточно.</li>
+<li>Ограничить <code>max_depth</code> или <code>max_leaf_nodes</code>.</li>
+<li>Увеличить <code>min_samples_leaf</code> / <code>min_samples_split</code>.</li>
+<li>Уменьшить <code>max_features</code>.</li>
+<li>Использовать <code>max_samples</code> &lt; 1.0, если полная выборка не нужна каждому дереву.</li>
+<li>Рассмотреть <b>ExtraTrees</b>, где split выбираются более случайно и обучение часто дешевле.</li>
+</ul>
+<div class="key">Главное инженерное преимущество RF: деревья независимы, поэтому ансамбль хорошо параллелится.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-boost" data-index="14" data-topic="Boosting">
+      <button class="question" aria-expanded="false">
+        <span class="num">14</span>
+        <span class="qwrap">
+          <span class="tag">Gradient Boosting</span>
+          <span class="qtext">Что такое градиентный бустинг и как он работает?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p><b>Gradient Boosting</b> строит ансамбль последовательно:</p>
+<div class="formula">F<sub>M</sub>(x) = F<sub>0</sub>(x) + ηf₁(x) + ηf₂(x) + ... + ηf<sub>M</sub>(x)</div>
+<p>Каждое новое дерево пытается улучшить уже существующую модель.</p>
+<p>Для произвольной differentiable loss строятся <b>pseudo-residuals</b> — отрицательные градиенты:</p>
+<div class="formula">r<sub>im</sub> = − ∂L(yᵢ, F(xᵢ)) / ∂F(xᵢ)</div>
+<p>Новое дерево учится приближать это направление ошибки.</p>
+<div class="key">Gradient Boosting — это градиентный спуск не по обычным весам, а в пространстве функций: новое дерево становится очередным шагом.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-boost" data-index="15" data-topic="Boosting">
+      <button class="question" aria-expanded="false">
+        <span class="num">15</span>
+        <span class="qwrap">
+          <span class="tag">AdaBoost vs GB</span>
+          <span class="qtext">Как градиентный бустинг отличается от AdaBoost?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<table>
+<thead><tr><th>AdaBoost</th><th>Gradient Boosting</th></tr></thead>
+<tbody>
+<tr><td>Увеличивает веса ошибочно классифицированных объектов.</td><td>Считает отрицательный градиент loss по текущим предсказаниям.</td></tr>
+<tr><td>Следующая модель сильнее фокусируется на трудных объектах.</td><td>Следующая модель приближает pseudo-residuals.</td></tr>
+<tr><td>Имеет более специфическую схему обновления.</td><td>Обобщается на разные differentiable loss.</td></tr>
+</tbody></table>
+<div class="formula">AdaBoost: ошибся → ↑ вес объекта<br>Gradient Boosting: ∂Loss/∂prediction → направление исправления</div>
+<div class="key">AdaBoost можно воспринимать как более специальную boosting-схему, Gradient Boosting — как общий градиентный подход.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-boost" data-index="16" data-topic="Boosting">
+      <button class="question" aria-expanded="false">
+        <span class="num">16</span>
+        <span class="qwrap">
+          <span class="tag">Гиперпараметры</span>
+          <span class="qtext">Какие основные гиперпараметры важны для настройки градиентного бустинга?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<table>
+<thead><tr><th>Группа</th><th>Параметры</th></tr></thead>
+<tbody>
+<tr><td>Размер ансамбля</td><td><code>n_estimators</code> / <code>iterations</code></td></tr>
+<tr><td>Шаг</td><td><code>learning_rate</code></td></tr>
+<tr><td>Сложность дерева</td><td><code>max_depth</code>, <code>num_leaves</code></td></tr>
+<tr><td>Размер листа</td><td><code>min_samples_leaf</code>, <code>min_child_weight</code>, <code>min_data_in_leaf</code></td></tr>
+<tr><td>Сэмплирование объектов</td><td><code>subsample</code></td></tr>
+<tr><td>Сэмплирование признаков</td><td><code>colsample_bytree</code>, <code>feature_fraction</code></td></tr>
+<tr><td>Регуляризация</td><td>L1/L2, ограничения split, early stopping</td></tr>
+</tbody></table>
+<div class="key">Самая важная связка для понимания: <code>learning_rate</code> ↔ количество деревьев ↔ сложность дерева.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-boost" data-index="17" data-topic="Boosting">
+      <button class="question" aria-expanded="false">
+        <span class="num">17</span>
+        <span class="qwrap">
+          <span class="tag">Learning rate</span>
+          <span class="qtext">Что такое learning rate в градиентном бустинге и как он влияет на модель?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p>Learning rate <span class="formula-inline">η</span> определяет, какую долю коррекции нового дерева мы добавляем:</p>
+<div class="formula">F<sub>m</sub>(x) = F<sub>m−1</sub>(x) + η · f<sub>m</sub>(x)</div>
+<p>Маленький learning rate:</p>
+<ul>
+<li>делает шаги осторожнее;</li>
+<li>часто улучшает generalization;</li>
+<li>требует больше деревьев;</li>
+<li>увеличивает время обучения.</li>
+</ul>
+<div class="formula">learning_rate ↓  ⇒  обычно n_estimators ↑</div>
+<div class="key">Learning rate — shrinkage: мы уменьшаем вклад каждого отдельного дерева.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-boost" data-index="18" data-topic="Boosting">
+      <button class="question" aria-expanded="false">
+        <span class="num">18</span>
+        <span class="qwrap">
+          <span class="tag">Overfitting</span>
+          <span class="qtext">Как градиентный бустинг справляется с переобучением?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p>Boosting <b>может переобучаться</b>, поэтому его ограничивают несколькими способами:</p>
+<ul>
+<li>маленький <code>learning_rate</code>;</li>
+<li>неглубокие / небольшие деревья;</li>
+<li><code>subsample</code> объектов;</li>
+<li>сэмплирование признаков;</li>
+<li>ограничения размера листьев;</li>
+<li>L1/L2-регуляризация;</li>
+<li><b>early stopping</b>.</li>
+</ul>
+<div class="formula">train loss продолжает ↓, validation loss начал ↑ → пора останавливаться</div>
+<div class="key">В boosting важен не один «анти-overfit параметр», а баланс шага, числа деревьев и сложности каждого дерева.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-boost" data-index="19" data-topic="Boosting">
+      <button class="question" aria-expanded="false">
+        <span class="num">19</span>
+        <span class="qwrap">
+          <span class="tag">Регуляризация</span>
+          <span class="qtext">Что такое регуляризация в градиентном бустинге и какие методы используются?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p>Регуляризация — механизмы, которые ограничивают способность ансамбля слишком точно подгонять train.</p>
+<ul>
+<li><b>Shrinkage:</b> маленький <code>learning_rate</code>.</li>
+<li><b>Ограничение деревьев:</b> <code>max_depth</code>, <code>num_leaves</code>, минимальный размер листа.</li>
+<li><b>Randomization:</b> <code>subsample</code>, column sampling.</li>
+<li><b>L2:</b> штраф на большие веса листьев.</li>
+<li><b>L1:</b> штраф по абсолютным значениям.</li>
+<li><b>Split constraints:</b> минимальный gain для разбиения.</li>
+<li><b>Early stopping.</b></li>
+</ul>
+<div class="formula">Objective = Loss + Regularization</div>
+<div class="key">Регуляризация может ограничивать и весь ансамбль, и каждое отдельное дерево.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-rf" data-index="20" data-topic="Random Forest">
+      <button class="question" aria-expanded="false">
+        <span class="num">20</span>
+        <span class="qwrap">
+          <span class="tag">Независимость деревьев</span>
+          <span class="qtext">Можно ли убрать первое дерево из случайного леса? Как это повлияет на предсказания?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<p><b>Да.</b> Деревья Random Forest обучаются независимо.</p>
+<div class="formula">ŷ = (f₁ + f₂ + ... + f₁₀₀) / 100</div>
+<p>После удаления первого дерева:</p>
+<div class="formula">ŷ′ = (f₂ + ... + f₁₀₀) / 99</div>
+<p>Остальные деревья переобучать не нужно. Итоговое предсказание немного изменится; класс может вообще остаться тем же.</p>
+<div class="compare">
+<div><b>Random Forest</b><br>деревья независимы → удалить одно технически можно.</div>
+<div><b>Boosting</b><br>последующие деревья обучались на ошибках предыдущего ансамбля → выдёргивать раннее дерево концептуально плохо.</div>
+</div>
+<div class="key">Этот вопрос проверяет главное различие: <b>bagging — параллельный/независимый, boosting — последовательный/зависимый</b>.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-boost" data-index="21" data-topic="Boosting">
+      <button class="question" aria-expanded="false">
+        <span class="num">21</span>
+        <span class="qwrap">
+          <span class="tag">Плюсы / минусы</span>
+          <span class="qtext">Какие преимущества и недостатки градиентного бустинга по сравнению с другими алгоритмами ансамблирования?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<div class="two">
+<div>
+<h4>Плюсы</h4>
+<ul>
+<li>очень сильное качество на табличных данных;</li>
+<li>ловит нелинейности и взаимодействия признаков;</li>
+<li>не требует scaling;</li>
+<li>может оптимизировать разные loss;</li>
+<li>современные реализации умеют missing values, categorical features и развитую регуляризацию.</li>
+</ul>
+</div>
+<div>
+<h4>Минусы</h4>
+<ul>
+<li>больше гиперпараметров;</li>
+<li>легче переобучить, чем RF;</li>
+<li>деревья строятся последовательно, поэтому хуже параллелятся на уровне ансамбля;</li>
+<li>чувствителен к learning rate и сложности деревьев;</li>
+<li>тюнинг обычно сложнее.</li>
+</ul>
+</div>
+</div>
+<div class="key"><b>Random Forest</b> — надёжный baseline. <b>Gradient Boosting</b> — частый кандидат на максимальное качество для табличных данных.</div>
+</div></div>
+    </section>
+    
+    <section class="card topic-libs" data-index="22" data-topic="Библиотеки">
+      <button class="question" aria-expanded="false">
+        <span class="num">22</span>
+        <span class="qwrap">
+          <span class="tag">CatBoost · XGBoost · LightGBM</span>
+          <span class="qtext">В чём отличия реализации в CatBoost, XGBoost и LightGBM?</span>
+        </span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer"><div class="answer-inner">
+<table>
+<thead><tr><th></th><th>CatBoost</th><th>XGBoost</th><th>LightGBM</th></tr></thead>
+<tbody>
+<tr><td><b>Главная идея</b></td><td>Категории + ordered-подходы</td><td>Универсальность + развитая регуляризация</td><td>Скорость + leaf-wise рост</td></tr>
+<tr><td><b>Рост дерева</b></td><td>обычно симметричные деревья</td><td>обычно level/depth-wise, есть разные стратегии</td><td>leaf-wise</td></tr>
+<tr><td><b>Категории</b></td><td>сильная нативная обработка</td><td>есть native categorical support</td><td>есть native categorical support</td></tr>
+<tr><td><b>Histogram splits</b></td><td>эффективные дискретизации внутри реализации</td><td>hist — один из основных методов</td><td>ключевая часть дизайна</td></tr>
+<tr><td><b>Типичный образ</b></td><td>«категории без боли»</td><td>«универсальный и управляемый»</td><td>«очень быстрый на больших табличках»</td></tr>
+</tbody></table>
+
+<h4>CatBoost</h4>
+<p>Особенно известен нативной работой с категориальными признаками, <b>ordered statistics</b> и режимом <b>Ordered Boosting</b>, которые помогают уменьшать target leakage / prediction shift. Характерная реализация — симметричные деревья.</p>
+
+<h4>XGBoost</h4>
+<p>Очень зрелая реализация с развитой регуляризацией и большим набором параметров:</p>
+<div class="formula">Objective = Loss + Ω(model)</div>
+<p>Типичные механизмы: L1/L2, <code>gamma</code>, <code>min_child_weight</code>, row/column sampling. Есть histogram-based построение деревьев и native categorical features.</p>
+
+<h4>LightGBM</h4>
+<p>Характерная особенность — <b>leaf-wise</b> рост: на каждом шаге делится тот лист, который даёт наибольшее улучшение.</p>
+<div class="formula">выбираем не «следующий уровень», а лучший текущий лист</div>
+<p>Это часто быстро уменьшает loss, но требует аккуратно ограничивать <code>num_leaves</code>, <code>max_depth</code> и <code>min_data_in_leaf</code>, особенно на небольших данных.</p>
+
+<div class="interview"><b>Ответ за 20 секунд:</b> «Все три — реализации gradient boosted trees. XGBoost известен универсальностью и развитой регуляризацией, LightGBM — histogram-based обучением и leaf-wise ростом, что делает его быстрым на больших данных, CatBoost — сильной нативной обработкой категориальных признаков, ordered statistics и Ordered Boosting».</div>
+</div></div>
+    </section>
+    
+</main>
+
+<div class="footer">Автономный HTML • работает локально • адаптирован под телефон и печать</div>
+</div>
+
+<script>
+const cards = [...document.querySelectorAll('.card')];
+const search = document.getElementById('search');
+const topic = document.getElementById('topic');
+const progress = document.getElementById('progress');
+
+function setOpen(card, open) {
+  card.classList.toggle('open', open);
+  card.querySelector('.question').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function applyFilters() {
+  const q = search.value.trim().toLowerCase();
+  const t = topic.value;
+  let n = 0;
+  cards.forEach(card => {
+    const textMatch = card.innerText.toLowerCase().includes(q);
+    const topicMatch = !t || card.dataset.topic === t;
+    const match = textMatch && topicMatch;
+    card.classList.toggle('hidden', !match);
+    if (match) n++;
+  });
+  progress.textContent = `Показано ${n} из ${cards.length} вопросов`;
+}
+cards.forEach(card => card.querySelector('.question').addEventListener('click', () => setOpen(card, !card.classList.contains('open'))));
+document.getElementById('expand').addEventListener('click', () => cards.filter(c=>!c.classList.contains('hidden')).forEach(c=>setOpen(c,true)));
+document.getElementById('collapse').addEventListener('click', () => cards.forEach(c=>setOpen(c,false)));
+document.getElementById('random').addEventListener('click', () => {
+  const visible = cards.filter(c => !c.classList.contains('hidden'));
+  if (!visible.length) return;
+  cards.forEach(c=>setOpen(c,false));
+  const card = visible[Math.floor(Math.random()*visible.length)];
+  card.scrollIntoView({behavior:'smooth', block:'center'});
+  card.animate([{transform:'scale(1)'},{transform:'scale(1.015)'},{transform:'scale(1)'}],{duration:500});
+});
+search.addEventListener('input', applyFilters);
+topic.addEventListener('change', applyFilters);
+</script>
+</body>
+</html>

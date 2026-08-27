@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Классификация, LogReg, метрики и деревья — тренажёр к собеседованию</title>
+<style>
+:root {
+  --bg:#f4f6fb;
+  --panel:#ffffff;
+  --text:#1d2330;
+  --muted:#667085;
+  --line:#e5e9f2;
+  --accent:#5b5bd6;
+  --accent2:#7a5af8;
+  --soft:#f0efff;
+  --good:#e9f8ee;
+  --bad:#fff0f0;
+  --key:#f8f7ff;
+  --shadow:0 12px 35px rgba(28,39,76,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(122,90,248,.08), transparent 33rem),
+    radial-gradient(circle at top right, rgba(91,91,214,.07), transparent 28rem),
+    var(--bg);
+  color:var(--text);
+  line-height:1.65;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 18px 60px}
+.hero{
+  background:linear-gradient(135deg,#20263b,#3a3476);
+  color:white;
+  border-radius:26px;
+  padding:34px 30px;
+  box-shadow:var(--shadow);
+  margin-bottom:22px;
+}
+.hero h1{margin:0 0 8px;font-size:clamp(28px,5vw,46px);line-height:1.08}
+.hero p{margin:0;color:#d9dcff;font-size:16px;max-width:780px}
+.toolbar{
+  position:sticky;top:10px;z-index:10;
+  display:flex;flex-wrap:wrap;gap:10px;
+  background:rgba(244,246,251,.88);
+  backdrop-filter:blur(12px);
+  padding:10px 0 14px;
+}
+button,.search{font:inherit}
+.ctrl{
+  border:1px solid var(--line);background:#fff;color:var(--text);
+  border-radius:12px;padding:10px 14px;cursor:pointer;
+  box-shadow:0 3px 12px rgba(35,42,70,.04);
+}
+.ctrl:hover{border-color:#cfd4e6}
+.search{
+  flex:1;min-width:230px;border:1px solid var(--line);background:#fff;
+  border-radius:12px;padding:10px 14px;outline:none;
+}
+.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,91,214,.12)}
+.progress{font-size:13px;color:var(--muted);margin:4px 2px 14px}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:18px;
+  margin:12px 0;overflow:hidden;box-shadow:0 6px 18px rgba(34,45,78,.035)
+}
+.question{
+  width:100%;border:0;background:transparent;text-align:left;
+  display:grid;grid-template-columns:42px 1fr 26px;gap:12px;align-items:center;
+  padding:18px 18px;cursor:pointer;color:var(--text)
+}
+.question:hover{background:#fafbff}
+.num{
+  width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:var(--soft);color:var(--accent);font-weight:800
+}
+.qtext{font-weight:750;font-size:16px}
+.chev{font-size:24px;color:var(--muted);transition:.2s transform}
+.card.open .chev{transform:rotate(180deg)}
+.answer{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
+.card.open .answer{grid-template-rows:1fr}
+.answer-inner{overflow:hidden;padding:0 22px}
+.card.open .answer-inner{padding:0 22px 24px}
+.answer p{margin:.72em 0}
+.answer ul,.answer ol{padding-left:22px}
+.formula{
+  margin:12px 0;padding:12px 14px;border-radius:12px;
+  background:#f7f8fc;border:1px solid #eaedf5;
+  font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  overflow-x:auto;font-size:15px
+}
+.formula-inline{font-family:"SFMono-Regular",Consolas,monospace;background:#f5f6fa;padding:2px 5px;border-radius:6px}
+.key{
+  margin:14px 0;padding:13px 15px;border-radius:12px;
+  background:var(--key);border-left:4px solid var(--accent2);font-weight:650
+}
+.interview{
+  margin:14px 0;padding:13px 15px;border-radius:12px;
+  background:#eef7ff;border-left:4px solid #4b8bd8
+}
+.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid var(--line);padding:10px;text-align:center}
+th{background:#f7f8fc}
+.good{background:var(--good);font-weight:800}
+.bad{background:var(--bad);font-weight:800}
+.matrix{overflow:auto;margin:12px 0}
+.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:30px}
+.hidden{display:none}
+.quiz-note{
+  margin:14px 0 4px;padding:12px 14px;border-radius:12px;background:#fff9e8;
+  border:1px solid #f2e2a7;color:#6b5b20
+}
+@media (max-width:650px){
+  .hero{padding:26px 22px;border-radius:20px}
+  .question{grid-template-columns:36px 1fr 20px;padding:15px 14px;gap:9px}
+  .num{width:34px;height:34px}
+  .qtext{font-size:15px}
+  .card.open .answer-inner{padding:0 16px 20px}
+  .answer-inner{padding:0 16px}
+}
+@media print{
+  body{background:white}
+  .toolbar,.progress{display:none}
+  .wrap{max-width:none;padding:0}
+  .hero{box-shadow:none}
+  .card{box-shadow:none;break-inside:avoid}
+  .answer{display:block!important}
+  .answer-inner{overflow:visible!important;padding:0 18px 18px!important}
+  .chev{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>Классификация, LogReg, метрики и деревья</h1>
+    <p>28 вопросов к ML-собеседованию. Нажимай на вопрос, сначала отвечай сама, потом раскрывай объяснение.</p>
+  </header>
+
+  <div class="toolbar">
+    <input id="search" class="search" placeholder="Поиск: ROC, F1, дерево, cross-entropy…">
+    <button class="ctrl" id="expand">Раскрыть всё</button>
+    <button class="ctrl" id="collapse">Скрыть всё</button>
+    <button class="ctrl" id="random">Случайный вопрос</button>
+  </div>
+  <div class="progress" id="progress">Показано 28 из 28 вопросов</div>
+
+  <div class="quiz-note"><b>Режим тренировки:</b> читай только заголовок вопроса, формулируй ответ вслух за 30–60 секунд, затем раскрывай карточку и сверяйся.</div>
+
+  <main id="cards">
+    
+    <section class="card" data-index="1">
+      <button class="question" aria-expanded="false">
+        <span class="num">1</span>
+        <span class="qtext">Что такое задача классификации и чем она отличается от регрессии?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p><b>Классификация</b> — задача, где модель должна выбрать <b>класс объекта</b> из конечного набора классов.</p>
+<ul>
+<li>письмо → spam / not spam;</li>
+<li>картинка → cat / dog / bird;</li>
+<li>клиент → уйдёт / не уйдёт.</li>
+</ul>
+<p><b>Регрессия</b> предсказывает числовое значение: стоимость, температуру, время доставки и т. п.</p>
+<div class="key">Классификация → дискретная категория. Регрессия → числовое значение.</div>
+<div class="interview"><b>На собесе:</b> «В классификации целевая переменная категориальная, в регрессии — числовая. Модель классификации часто выдаёт score или вероятность, а уже затем по порогу выбирается класс.»</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="2">
+      <button class="question" aria-expanded="false">
+        <span class="num">2</span>
+        <span class="qtext">Что такое логистическая регрессия и чем она отличается от линейной?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Линейная регрессия строит:</p>
+<div class="formula">z = wᵀx + b, &nbsp;&nbsp; ŷ = z</div>
+<p>Логистическая регрессия сначала тоже считает линейную комбинацию:</p>
+<div class="formula">z = wᵀx + b</div>
+<p>а затем пропускает её через sigmoid:</p>
+<div class="formula">p = σ(z) = 1 / (1 + e<sup>−z</sup>)</div>
+<p>Получаем <span class="formula-inline">p ∈ (0, 1)</span>, что интерпретируем как <span class="formula-inline">P(y=1|x)</span>.</p>
+<p>Далее можно применить порог, например:</p>
+<div class="formula">p ≥ 0.5 → ŷ = 1</div>
+<div class="key">Линейная регрессия предсказывает число напрямую. Логистическая — вероятность класса через sigmoid.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="3">
+      <button class="question" aria-expanded="false">
+        <span class="num">3</span>
+        <span class="qtext">Можно ли назвать логистическую регрессию линейной моделью?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p><b>Да.</b> Хотя sigmoid нелинейна, логистическая регрессия остаётся линейной моделью по признакам.</p>
+<p>При пороге 0.5:</p>
+<div class="formula">σ(wᵀx + b) ≥ 0.5 ⇔ wᵀx + b ≥ 0</div>
+<p>Граница решения:</p>
+<div class="formula">wᵀx + b = 0</div>
+<p>В 2D это прямая, в 3D — плоскость, в nD — гиперплоскость.</p>
+<p>Ещё один способ увидеть линейность:</p>
+<div class="formula">log(p / (1 − p)) = wᵀx + b</div>
+<div class="key">LogReg — линейная модель, потому что log-odds линейно зависят от признаков и граница решения линейна.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="4">
+      <button class="question" aria-expanded="false">
+        <span class="num">4</span>
+        <span class="qtext">В чём отличие функции потерь от метрики?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p><b>Loss function</b> используется для обучения: оптимизатор пытается её минимизировать.</p>
+<div class="formula">Loss → gradient → update weights</div>
+<p><b>Метрика</b> используется для оценки качества модели человеком или для выбора модели.</p>
+<p>Примеры метрик: Accuracy, Precision, Recall, F1, ROC-AUC.</p>
+<div class="key">Loss должна быть удобна для оптимизации. Метрика должна быть полезна для оценки качества.</div>
+<p>Например, можно обучать по Cross-Entropy, а качество смотреть по F1.</p>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="5">
+      <button class="question" aria-expanded="false">
+        <span class="num">5</span>
+        <span class="qtext">Может ли метрика быть функцией потерь и наоборот?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p><b>Да.</b> Это скорее роль величины, чем два непересекающихся типа функций.</p>
+<p>Например, MSE можно:</p>
+<ul>
+<li>минимизировать как loss;</li>
+<li>показывать как метрику на validation.</li>
+</ul>
+<p>То же возможно с MAE или LogLoss.</p>
+<p>Но не каждая хорошая метрика является хорошим loss. Accuracy и F1 неудобны для обычного градиентного обучения, поскольку содержат недифференцируемые операции и меняются скачками.</p>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="6">
+      <button class="question" aria-expanded="false">
+        <span class="num">6</span>
+        <span class="qtext">Что такое бинарная классификация и какой выход ожидаем от модели?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>В бинарной классификации есть два класса:</p>
+<div class="formula">y ∈ {0, 1}</div>
+<p>Модель может выдавать <b>logit</b>:</p>
+<div class="formula">z ∈ (−∞, +∞)</div>
+<p>или после sigmoid:</p>
+<div class="formula">p = P(y=1|x) ∈ (0,1)</div>
+<p>Тогда:</p>
+<div class="formula">P(y=0|x) = 1 − p</div>
+<div class="key">Для бинарной классификации достаточно одного выхода.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="7">
+      <button class="question" aria-expanded="false">
+        <span class="num">7</span>
+        <span class="qtext">Формула бинарной кросс-энтропии</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Для одного объекта:</p>
+<div class="formula">L = −[ y log p + (1 − y) log(1 − p) ]</div>
+<p>Если <span class="formula-inline">y=1</span>:</p>
+<div class="formula">L = −log p</div>
+<p>Если <span class="formula-inline">y=0</span>:</p>
+<div class="formula">L = −log(1 − p)</div>
+<p>Для датасета:</p>
+<div class="formula">L = −(1/N) Σ [ yᵢ log pᵢ + (1−yᵢ) log(1−pᵢ) ]</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="8">
+      <button class="question" aria-expanded="false">
+        <span class="num">8</span>
+        <span class="qtext">Откуда и зачем в кросс-энтропии логарифмы?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Они появляются естественно из <b>Maximum Likelihood Estimation</b>.</p>
+<p>Вероятность всего датасета — произведение вероятностей отдельных объектов:</p>
+<div class="formula">P(D|θ) = ∏ P(yᵢ|xᵢ, θ)</div>
+<p>Логарифм превращает произведение в сумму:</p>
+<div class="formula">log P(D|θ) = Σ log P(yᵢ|xᵢ, θ)</div>
+<p>Сумму удобнее оптимизировать численно. Чтобы максимизацию превратить в минимизацию, ставим минус:</p>
+<div class="formula">Loss = −log Likelihood</div>
+<p>Кроме того, логарифм сильно штрафует уверенные ошибки:</p>
+<div class="formula">−log(0.9) ≈ 0.105 &nbsp;&nbsp;&nbsp; −log(0.01) ≈ 4.605</div>
+<div class="key">Логарифм одновременно даёт удобную сумму вместо произведения и сильно наказывает уверенные неправильные прогнозы.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="9">
+      <button class="question" aria-expanded="false">
+        <span class="num">9</span>
+        <span class="qtext">Что такое метод максимального правдоподобия?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p><b>MLE — Maximum Likelihood Estimation.</b></p>
+<p>Идея: выбрать такие параметры модели, при которых наблюдавшиеся данные были бы максимально вероятными.</p>
+<div class="formula">θ* = arg max<sub>θ</sub> P(D|θ)</div>
+<p>Если модель дала настоящим классам вероятности 0.9, 0.8 и 0.7, то likelihood:</p>
+<div class="formula">0.9 × 0.8 × 0.7</div>
+<p>MLE ищет параметры, максимизирующие такое произведение на всём датасете.</p>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="10">
+      <button class="question" aria-expanded="false">
+        <span class="num">10</span>
+        <span class="qtext">Как связаны MLE и Cross-Entropy?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Для бинарной классификации:</p>
+<div class="formula">P(yᵢ|xᵢ) = pᵢ<sup>yᵢ</sup>(1−pᵢ)<sup>1−yᵢ</sup></div>
+<p>Likelihood:</p>
+<div class="formula">L = ∏ pᵢ<sup>yᵢ</sup>(1−pᵢ)<sup>1−yᵢ</sup></div>
+<p>Логарифмируем:</p>
+<div class="formula">log L = Σ [ yᵢ log pᵢ + (1−yᵢ) log(1−pᵢ) ]</div>
+<p>MLE максимизирует log-likelihood. Это эквивалентно минимизации отрицательного log-likelihood:</p>
+<div class="formula">−log L = −Σ [ yᵢ log pᵢ + (1−yᵢ) log(1−pᵢ) ]</div>
+<div class="key">Для логистической регрессии с Bernoulli likelihood: MLE ⇔ минимизация Binary Cross-Entropy.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="11">
+      <button class="question" aria-expanded="false">
+        <span class="num">11</span>
+        <span class="qtext">Что такое TP, FP, TN, FN?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<div class="matrix">
+<table>
+<thead><tr><th></th><th>Реально +</th><th>Реально −</th></tr></thead>
+<tbody>
+<tr><th>Предсказали +</th><td class="good">TP</td><td class="bad">FP</td></tr>
+<tr><th>Предсказали −</th><td class="bad">FN</td><td class="good">TN</td></tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><b>TP</b> — предсказали 1, реально 1.</li>
+<li><b>FP</b> — предсказали 1, реально 0.</li>
+<li><b>TN</b> — предсказали 0, реально 0.</li>
+<li><b>FN</b> — предсказали 0, реально 1.</li>
+</ul>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="12">
+      <button class="question" aria-expanded="false">
+        <span class="num">12</span>
+        <span class="qtext">Precision, Recall, Accuracy через TP, FP, TN, FN</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<div class="formula">Precision = TP / (TP + FP)</div>
+<p>Из всех, кого назвали положительными, сколько действительно положительные?</p>
+<div class="formula">Recall = TP / (TP + FN)</div>
+<p>Из всех реально положительных сколько мы нашли?</p>
+<div class="formula">Accuracy = (TP + TN) / (TP + TN + FP + FN)</div>
+<p>Какую долю всех объектов классифицировали правильно?</p>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="13">
+      <button class="question" aria-expanded="false">
+        <span class="num">13</span>
+        <span class="qtext">F1 через Precision и Recall</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<div class="formula">F₁ = 2 · Precision · Recall / (Precision + Recall)</div>
+<p>Через confusion matrix:</p>
+<div class="formula">F₁ = 2TP / (2TP + FP + FN)</div>
+<div class="key">F1 — гармоническое среднее Precision и Recall.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="14">
+      <button class="question" aria-expanded="false">
+        <span class="num">14</span>
+        <span class="qtext">Почему не арифметическое среднее Precision и Recall?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Пусть:</p>
+<div class="formula">Precision = 1, &nbsp;&nbsp; Recall = 0.1</div>
+<p>Арифметическое среднее:</p>
+<div class="formula">(1 + 0.1) / 2 = 0.55</div>
+<p>Получается 55%, хотя модель находит только 10% положительных объектов.</p>
+<p>F1:</p>
+<div class="formula">F₁ = 2 · 1 · 0.1 / 1.1 ≈ 0.182</div>
+<div class="key">Гармоническое среднее сильнее тянется к меньшему из двух значений, поэтому высокий F1 требует одновременно хороших Precision и Recall.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="15">
+      <button class="question" aria-expanded="false">
+        <span class="num">15</span>
+        <span class="qtext">Почему не геометрическое среднее?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Можно было бы использовать:</p>
+<div class="formula">G = √(Precision · Recall)</div>
+<p>Но геометрическое среднее слабее штрафует дисбаланс.</p>
+<p>Для <span class="formula-inline">P=1, R=0.1</span>:</p>
+<div class="formula">G ≈ 0.316, &nbsp;&nbsp; F₁ ≈ 0.182</div>
+<p>Для положительных чисел:</p>
+<div class="formula">H ≤ G ≤ A</div>
+<p>где H — гармоническое, G — геометрическое, A — арифметическое.</p>
+<div class="key">F1 — не «закон природы», а удобная договорённость, хорошо штрафующая перекос между Precision и Recall.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="16">
+      <button class="question" aria-expanded="false">
+        <span class="num">16</span>
+        <span class="qtext">Возможно ли Precision = 19%, Recall = 92%, Accuracy = 10%?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Для обычной бинарной классификации, если все три величины считаются по одной confusion matrix, — <b>нет</b>.</p>
+<p>Пусть число реально положительных объектов равно <span class="formula-inline">P</span>.</p>
+<div class="formula">Recall = TP/P = 0.92 → TP = 0.92P</div>
+<p>Из Precision:</p>
+<div class="formula">0.19 = TP/(TP+FP)</div>
+<p>откуда:</p>
+<div class="formula">FP ≈ 3.92P</div>
+<p>Минимальный Accuracy будет при <span class="formula-inline">TN=0</span>:</p>
+<div class="formula">Accuracy<sub>min</sub> = 0.92P / (P + 3.92P) ≈ 0.187</div>
+<div class="key">Значит при таких Precision и Recall Accuracy не может быть ниже примерно 18.7%. Значение 10% невозможно.</div>
+<p class="muted">Оговорка: в multiclass с разными способами averaging ситуация может быть другой.</p>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="17">
+      <button class="question" aria-expanded="false">
+        <span class="num">17</span>
+        <span class="qtext">Что такое F2, F3, F100500?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Общая формула:</p>
+<div class="formula">F<sub>β</sub> = (1+β²)PR / (β²P + R)</div>
+<p>Через confusion matrix:</p>
+<div class="formula">F<sub>β</sub> = (1+β²)TP / ((1+β²)TP + β²FN + FP)</div>
+<ul>
+<li><b>β = 1</b> → F1;</li>
+<li><b>β &gt; 1</b> → сильнее ценим Recall;</li>
+<li><b>β &lt; 1</b> → сильнее ценим Precision.</li>
+</ul>
+<p>Для F2:</p>
+<div class="formula">F₂ = 5PR / (4P + R)</div>
+<p>Для очень большого β:</p>
+<div class="formula">F<sub>β</sub> → Recall</div>
+<div class="key">F100500 почти полностью будет определяться Recall.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="18">
+      <button class="question" aria-expanded="false">
+        <span class="num">18</span>
+        <span class="qtext">Что такое ROC-AUC и в каких осях строится график?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>ROC — Receiver Operating Characteristic.</p>
+<p>По оси X:</p>
+<div class="formula">FPR = FP / (FP + TN)</div>
+<p>По оси Y:</p>
+<div class="formula">TPR = TP / (TP + FN) = Recall</div>
+<p>При изменении threshold получаем разные точки ROC-кривой.</p>
+<div class="formula">X = FPR, &nbsp;&nbsp; Y = TPR</div>
+<p>Идеальный классификатор идёт к точке <span class="formula-inline">(0,1)</span>. Случайный — примерно вдоль <span class="formula-inline">y=x</span>.</p>
+<div class="key">ROC-AUC — площадь под ROC-кривой. Её также можно интерпретировать как вероятность того, что случайный positive получит score выше случайного negative.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="19">
+      <button class="question" aria-expanded="false">
+        <span class="num">19</span>
+        <span class="qtext">Как получаются thresholds для ROC?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p><b>Не</b> берутся равномерные пороги 0, 0.05, 0.10, 0.15...</p>
+<p>Пусть модель дала scores:</p>
+<div class="formula">0.92, 0.81, 0.63, 0.63, 0.41, 0.12</div>
+<p>Достаточно рассматривать пороги в местах, где реально меняется набор predicted positive, то есть по уникальным score:</p>
+<div class="formula">0.92 &gt; 0.81 &gt; 0.63 &gt; 0.41 &gt; 0.12</div>
+<ol>
+<li>Сортируем объекты по score от большего к меньшему.</li>
+<li>Начинаем с ситуации «все отрицательные».</li>
+<li>Постепенно снижаем threshold.</li>
+<li>При пересечении score объект становится predicted positive.</li>
+<li>Обновляем TP/FP и пересчитываем TPR/FPR.</li>
+</ol>
+<div class="key">ROC в первую очередь зависит от ранжирования объектов по score, а не от конкретной шкалы вероятностей.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="20">
+      <button class="question" aria-expanded="false">
+        <span class="num">20</span>
+        <span class="qtext">Как строится решающее дерево?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Начинаем со всех объектов в корневом узле.</p>
+<p>Алгоритм ищет вопрос вида:</p>
+<div class="formula">xⱼ &lt; t ?</div>
+<p>Например: <b>age &lt; 35?</b></p>
+<p>Получаем левую и правую группы и оцениваем, стало ли разделение «чище».</p>
+<p>Лучший split выбирается, после чего процесс рекурсивно повторяется для дочерних узлов.</p>
+<p>Остановка происходит, когда:</p>
+<ul>
+<li>достигнут max_depth;</li>
+<li>объектов слишком мало;</li>
+<li>улучшение слишком мало;</li>
+<li>узел уже чистый;</li>
+<li>сработали другие ограничения.</li>
+</ul>
+<div class="key">Дерево строится жадно: на каждом шаге выбирается лучшее локальное разбиение.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="21">
+      <button class="question" aria-expanded="false">
+        <span class="num">21</span>
+        <span class="qtext">Как выбирается критерий, по которому делается разделение?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Для каждого кандидата на split считаем уменьшение нечистоты.</p>
+<p>Например Gini:</p>
+<div class="formula">Gini = 1 − Σ pₖ²</div>
+<p>Для чистого узла Gini = 0. Для бинарного узла 50/50 Gini = 0.5.</p>
+<p>После split:</p>
+<div class="formula">I<sub>after</sub> = (N<sub>L</sub>/N) I<sub>L</sub> + (N<sub>R</sub>/N) I<sub>R</sub></div>
+<p>Уменьшение impurity:</p>
+<div class="formula">ΔI = I<sub>parent</sub> − I<sub>after</sub></div>
+<div class="key">Выбираем split с максимальным уменьшением impurity.</div>
+<p>Вместо Gini можно использовать энтропию:</p>
+<div class="formula">H = −Σ pₖ log pₖ</div>
+<p>Для числового признака нет смысла проверять каждый real number — достаточно порогов между соседними уникальными значениями, где меняется разделение объектов.</p>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="22">
+      <button class="question" aria-expanded="false">
+        <span class="num">22</span>
+        <span class="qtext">Как избежать переобучения дерева?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Основные способы:</p>
+<ul>
+<li><code>max_depth</code> — ограничить глубину;</li>
+<li><code>min_samples_split</code> — минимум объектов для split;</li>
+<li><code>min_samples_leaf</code> — минимум объектов в листе;</li>
+<li><code>max_leaf_nodes</code> — ограничить число листьев;</li>
+<li><code>max_features</code> — ограничить число признаков при поиске split;</li>
+<li><code>min_impurity_decrease</code> — требовать достаточного улучшения;</li>
+<li>pruning — обрезать лишние ветви.</li>
+</ul>
+<p>В sklearn для cost-complexity pruning есть:</p>
+<div class="formula">ccp_alpha</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="23">
+      <button class="question" aria-expanded="false">
+        <span class="num">23</span>
+        <span class="qtext">Что будет, если сделать дерево слишком коротким?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Получим <b>underfitting</b>.</p>
+<p>Дерево слишком простое и не может описать закономерности.</p>
+<div class="formula">train score ↓ &nbsp;&nbsp;&nbsp; validation score ↓</div>
+<div class="key">Слишком короткое дерево → высокий bias.</div>
+<p>Например <code>max_depth=1</code> даёт decision stump — всего одно разделение.</p>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="24">
+      <button class="question" aria-expanded="false">
+        <span class="num">24</span>
+        <span class="qtext">Что будет, если дерево слишком глубокое?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p>Дерево начинает запоминать конкретные объекты и шум.</p>
+<p>Можно дойти почти до ситуации:</p>
+<div class="formula">один лист ≈ один объект</div>
+<p>Тогда:</p>
+<div class="formula">train accuracy ≈ 100%, &nbsp;&nbsp; validation/test хуже</div>
+<div class="key">Слишком глубокое дерево → overfitting и высокая variance.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="25">
+      <button class="question" aria-expanded="false">
+        <span class="num">25</span>
+        <span class="qtext">Минусы решающих деревьев по сравнению с линейными моделями</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<ul>
+<li>легко переобучаются;</li>
+<li>нестабильны: небольшое изменение данных может сильно поменять дерево;</li>
+<li>предсказания кусочно-постоянные;</li>
+<li>плохо экстраполируют;</li>
+<li>границы решения у обычного дерева ступенчатые и параллельны осям;</li>
+<li>одиночное дерево часто хуже ансамблей;</li>
+<li>при действительно линейной зависимости линейная модель может быть проще и эффективнее.</li>
+</ul>
+<div class="key">Дерево гибче, но за эту гибкость платит большей variance.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="26">
+      <button class="question" aria-expanded="false">
+        <span class="num">26</span>
+        <span class="qtext">Плюсы решающих деревьев по сравнению с линейными моделями</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<ul>
+<li>моделируют нелинейности;</li>
+<li>автоматически находят взаимодействия признаков;</li>
+<li>не требуют scaling;</li>
+<li>мало предположений о форме зависимости;</li>
+<li>достаточно интерпретируемы;</li>
+<li>хорошо ловят сложные decision boundaries;</li>
+<li>являются основой Random Forest, Gradient Boosting, XGBoost, LightGBM, CatBoost.</li>
+</ul>
+<div class="key">Для дерева правило вида «если x₁ &gt; a и x₂ &lt; b» возникает естественно. Линейной модели такие взаимодействия часто приходится добавлять явно.</div>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="27">
+      <button class="question" aria-expanded="false">
+        <span class="num">27</span>
+        <span class="qtext">Нужно ли нормировать данные для решающих деревьев?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p><b>Нет.</b></p>
+<p>Если дерево выбрало:</p>
+<div class="formula">age &lt; 30</div>
+<p>и мы умножили возраст на 100:</p>
+<div class="formula">age′ &lt; 3000</div>
+<p>разделение объектов осталось тем же.</p>
+<div class="key">Дереву важен порядок значений, а не расстояние между ними.</div>
+<p>Поэтому Decision Tree, Random Forest и boosted trees обычно не требуют StandardScaler.</p>
+</div>
+      </div>
+    </section>
+    
+    <section class="card" data-index="28">
+      <button class="question" aria-expanded="false">
+        <span class="num">28</span>
+        <span class="qtext">Нужно ли нормировать данные для логистической регрессии?</span>
+        <span class="chev">⌄</span>
+      </button>
+      <div class="answer">
+        <div class="answer-inner">
+<p><b>Обычно рекомендуется.</b></p>
+<p>Если признаки имеют масштабы:</p>
+<div class="formula">age ~ 50, &nbsp;&nbsp; salary ~ 500000, &nbsp;&nbsp; ratio ~ 0.01</div>
+<p>оптимизация может быть хуже обусловленной.</p>
+<p>StandardScaler:</p>
+<div class="formula">x′ = (x − μ) / σ</div>
+<p>Особенно scaling важен при регуляризации:</p>
+<div class="formula">L₂ = λ Σ wⱼ²</div>
+<div class="formula">L₁ = λ Σ |wⱼ|</div>
+<p>Без scaling величина коэффициента зависит от единиц измерения признака, поэтому регуляризация воздействует на признаки неравномерно.</p>
+<div class="key">Теоретически LogReg может работать без scaling. Практически scaling обычно улучшает оптимизацию и особенно важен при L1/L2.</div>
+</div>
+      </div>
+    </section>
+    
+  </main>
+  <div class="footer">Автономный HTML • можно открыть локально в любом современном браузере</div>
+</div>
+
+<script>
+const cards = [...document.querySelectorAll('.card')];
+const search = document.getElementById('search');
+const progress = document.getElementById('progress');
+
+function setOpen(card, open) {
+  card.classList.toggle('open', open);
+  card.querySelector('.question').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+cards.forEach(card => {
+  card.querySelector('.question').addEventListener('click', () => setOpen(card, !card.classList.contains('open')));
+});
+
+document.getElementById('expand').addEventListener('click', () => cards.filter(c=>!c.classList.contains('hidden')).forEach(c=>setOpen(c,true)));
+document.getElementById('collapse').addEventListener('click', () => cards.forEach(c=>setOpen(c,false)));
+
+document.getElementById('random').addEventListener('click', () => {
+  const visible = cards.filter(c => !c.classList.contains('hidden'));
+  if (!visible.length) return;
+  cards.forEach(c=>setOpen(c,false));
+  const card = visible[Math.floor(Math.random()*visible.length)];
+  card.scrollIntoView({behavior:'smooth', block:'center'});
+  card.animate([{transform:'scale(1)'},{transform:'scale(1.015)'},{transform:'scale(1)'}],{duration:500});
+});
+
+search.addEventListener('input', () => {
+  const q = search.value.trim().toLowerCase();
+  let n = 0;
+  cards.forEach(card => {
+    const match = card.innerText.toLowerCase().includes(q);
+    card.classList.toggle('hidden', !match);
+    if (match) n++;
+  });
+  progress.textContent = `Показано ${n} из ${cards.length} вопросов`;
+});
+</script>
+</body>
+</html>
