@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
 
 X, y = make_classification(
     n_samples=200,

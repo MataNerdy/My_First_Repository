@@ -1,6 +1,14 @@
 import asyncio
 
 
+async def my_courutine():
+    print("Корутина начала работу")
+    await asyncio.sleep(1)
+    print("Корутина проснулась")
+    return "результат"
+
+coro = my_courutine()
+
 async def cook_pasta(name, time):
     print(f"{name}: Начинаю варить пасту")
     await asyncio.sleep(time)

@@ -18,3 +18,17 @@ gpu_model = CatBoostClassifier(
 )
 gpu_model.fit(X_train, y_train)
 gpu_model.save_model("catboost_model.cbm")
+
+print("Переходим к инференсу на CPU...")
+
+cpu_model = CatBoostClassifier()
+cpu_model.load_model('/content/catboost_model.cbm')
+
+sample_data = X_test[:1000]
+predictions_cpu = cpu_model.predict(sample_data)
+predictions_gpu = gpu_model.predict(sample_data)
+assert np.array_equal(predictions_cpu, predictions_gpu), \
+  "Предсказания должны быть идентичны, независимо от устройства обучения"
+
+print(f"Успешно выполнено предсказание для {len(sample_data)} объектов на CPU.")
+print("Модель готова к деплою в production без видеокарты.")
