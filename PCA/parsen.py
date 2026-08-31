@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 
 np.random.seed(0)
@@ -38,7 +39,6 @@ h = 1.0
 for x in x_test:
     r = np.sum(np.abs(x_train - x), axis = 1) / h
     K = (1 / np.sqrt(2 * np.pi)) * np.exp(- r**2 / 2)
-    print(f"{K=}")
     scores = np.zeros(3)
     for i in [0, 1, 2]:
         scores[i] = np.sum(K[y_train == i])
