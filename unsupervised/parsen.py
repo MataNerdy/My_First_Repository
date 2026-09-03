@@ -1,7 +1,5 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
-import numpy as np
-
 
 np.random.seed(0)
 n_feature = 2 # число признаков
