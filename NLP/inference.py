@@ -44,6 +44,7 @@ def build_vocabulary(texts: Iterable[str]) -> list[str]:
     return [UNKNOWN_TOKEN, *sorted(characters)]
 
 vocabulary = build_vocabulary(train_texts)
+print(vocabulary)
 character_to_id = {
     c: i for i, c in enumerate(vocabulary)
 }
@@ -64,6 +65,7 @@ def text_to_bag_of_characters(
     return features
 
 example_features = text_to_bag_of_characters('Hello!', character_to_id=character_to_id)
+print(example_features)
 
 class LanguageDataset(Dataset):
     def __init__(self,
@@ -107,10 +109,10 @@ for i, v in zip(idxs, vls):
     c = train_dataset.vocabulary[i.item()]
     print(c, '-', v.item())
 
-text=''
+text='🦆'
 print(text_to_bag_of_characters(text, character_to_id))
 
-
+'''
 class SwiGLU(nn.Module):
     def __init__(self, input_size: int, output_size: int) -> None:
         super().__init__()
@@ -186,3 +188,4 @@ for t in examples:
         ID_TO_LANGUAGE[i]: round(pr, 3) for i, pr in enumerate(probs)
     }
     print(t, '->', lang, readable_probs)
+'''

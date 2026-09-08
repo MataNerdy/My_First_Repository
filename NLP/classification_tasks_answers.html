@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Классификация языка в PyTorch — задания и решения</title>
+  <style>
+    :root {
+      --bg: #f7f5ff;
+      --paper: #ffffff;
+      --ink: #25223a;
+      --muted: #66627a;
+      --accent: #7257d8;
+      --accent-soft: #eee9ff;
+      --green: #16795c;
+      --green-soft: #e8f7f1;
+      --amber: #9a6500;
+      --amber-soft: #fff6dc;
+      --line: #ded9ef;
+      --code: #211e31;
+      --shadow: 0 10px 30px rgba(65, 46, 125, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(145deg, #f8f6ff 0%, #f3f9f7 100%);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.62;
+    }
+
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 38px auto 80px;
+    }
+
+    header {
+      padding: 36px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: var(--shadow);
+    }
+
+    h1, h2, h3 { line-height: 1.22; }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 5vw, 3.2rem); }
+    h2 { margin: 0 0 20px; font-size: 1.65rem; }
+    h3 { margin: 24px 0 10px; font-size: 1.12rem; }
+    p { margin: 10px 0; }
+
+    .subtitle { color: var(--muted); font-size: 1.08rem; max-width: 760px; }
+    .pipeline {
+      margin-top: 22px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: #433285;
+      font-weight: 700;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    nav {
+      margin-top: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    nav a {
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #f2effb;
+      color: #55449b;
+      text-decoration: none;
+      font-size: .91rem;
+      font-weight: 650;
+    }
+
+    section {
+      margin-top: 22px;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .task, .answer, .note, .result {
+      margin: 16px 0;
+      padding: 16px 18px;
+      border-radius: 14px;
+    }
+    .task { border-left: 5px solid var(--accent); background: var(--accent-soft); }
+    .answer { border-left: 5px solid var(--green); background: var(--green-soft); }
+    .note { border-left: 5px solid var(--amber); background: var(--amber-soft); }
+    .result { border: 1px dashed #beb5df; background: #faf9ff; }
+    .label { font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .task .label { color: var(--accent); }
+    .answer .label { color: var(--green); }
+    .note .label { color: var(--amber); }
+
+    code {
+      padding: .12em .34em;
+      border-radius: 5px;
+      background: #f0eef6;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .92em;
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 18px;
+      border-radius: 14px;
+      background: var(--code);
+      color: #f7f4ff;
+      line-height: 1.5;
+    }
+
+    pre code { padding: 0; background: transparent; color: inherit; }
+    ul, ol { padding-left: 23px; }
+
+    table {
+      width: 100%;
+      margin: 16px 0;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+    }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+    th { background: #f4f1fc; color: #4b3a8c; }
+    td.num, th.num { text-align: right; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .compact p { margin: 5px 0; }
+    .good { color: var(--green); font-weight: 750; }
+    .muted { color: var(--muted); }
+    footer { margin-top: 24px; text-align: center; color: var(--muted); }
+
+    @media (max-width: 720px) {
+      main { width: min(100% - 18px, 980px); margin-top: 10px; }
+      header, section { padding: 21px; border-radius: 16px; }
+      .two-col { grid-template-columns: 1fr; }
+      th, td { padding: 8px; font-size: .9rem; }
+    }
+
+    @media print {
+      body { background: white; }
+      main { width: 100%; margin: 0; }
+      header, section { box-shadow: none; break-inside: avoid; }
+      nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Классификация языка в PyTorch</h1>
+    <p class="subtitle">Все задания из ноутбука <strong>classification_training.ipynb</strong>, решения Любови, уточнения и результаты экспериментов.</p>
+    <div class="pipeline">CSV → Dataset → DataLoader → model → loss → backward → optimizer → validation → test → inference</div>
+    <nav>
+      <a href="#task1">1. Данные</a>
+      <a href="#task2">2. Bag of Characters</a>
+      <a href="#task3">3. Dataset</a>
+      <a href="#task4">4. DataLoader</a>
+      <a href="#task5">5. Модели</a>
+      <a href="#task6">6. Эпоха</a>
+      <a href="#task7">7. Обучение</a>
+      <a href="#task8">8. Test</a>
+      <a href="#task9">9. Сохранение</a>
+    </nav>
+  </header>
+
+  <section id="corrections">
+    <h2>Важные уточнения к ноутбуку</h2>
+    <ul>
+      <li><code>Dataset</code> — не словарь, а индексируемый интерфейс над данными.</li>
+      <li><code>DataLoader</code> не балансирует классы автоматически: <code>shuffle=True</code> только перемешивает примеры.</li>
+      <li><code>collate_fn</code> собирает элементы в батч; выбор объектов задают <code>sampler</code> и <code>batch_sampler</code>.</li>
+      <li><code>model.eval()</code> не отключает градиенты. Для этого нужен <code>torch.no_grad()</code> или <code>torch.inference_mode()</code>.</li>
+      <li>SwiGLU использует <code>SiLU</code>: <code>value * silu(gate)</code>. С <code>SELU</code> это уже другой блок.</li>
+      <li>При сохранении экспериментальной модели нужно сохранять название архитектуры, иначе нельзя надёжно восстановить объект модели.</li>
+    </ul>
+  </section>
+
+  <section id="task1">
+    <h2>Задание 1. Чтение и исследование данных</h2>
+    <div class="task">
+      <div class="label">Задание</div>
+      <ol>
+        <li>Вывести три случайных текста вместе с названием языка.</li>
+        <li>Проверить баланс классов в каждой части.</li>
+        <li>Объяснить, почему нельзя подбирать параметры модели по <code>test.csv</code>.</li>
+      </ol>
+    </div>
+    <div class="answer">
+      <div class="label">Решение</div>
+<pre><code>indices = random.sample(range(len(train_texts)), k=3)
+
+for i in indices:
+    print(train_texts[i], ID_TO_LANGUAGE[train_labels[i]])</code></pre>
+      <p><code>random.sample</code> выбирает три разных индекса. Вложенное обращение <code>ID_TO_LANGUAGE[train_labels[i]]</code> сначала получает числовую метку, а затем переводит её в <code>ru</code>, <code>en</code> или <code>es</code>.</p>
+    </div>
+    <table>
+      <thead><tr><th>Split</th><th class="num">ru</th><th class="num">en</th><th class="num">es</th><th class="num">Всего</th></tr></thead>
+      <tbody>
+        <tr><td>train</td><td class="num">3500</td><td class="num">3500</td><td class="num">3500</td><td class="num">10 500</td></tr>
+        <tr><td>validation</td><td class="num">500</td><td class="num">500</td><td class="num">500</td><td class="num">1500</td></tr>
+        <tr><td>test</td><td class="num">500</td><td class="num">500</td><td class="num">500</td><td class="num">1500</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <div class="label">Вывод</div>
+      <p>По <code>train</code> обучаем веса и строим признаки. По <code>validation</code> выбираем архитектуру, learning rate и число эпох. <code>Test</code> используем один раз для финальной оценки. Если многократно смотреть на test и менять модель, test фактически превращается в validation и перестаёт честно оценивать качество на новых данных.</p>
+    </div>
+  </section>
+
+  <section id="task2">
+    <h2>Задание 2. Bag of Characters</h2>
+    <div class="task">
+      <div class="label">Задание</div>
+      <p>Сравнить векторы для <code>Hello</code>, <code>hello</code> и <code>olleh</code>. Объяснить совпадения и потерянную информацию.</p>
+    </div>
+    <div class="answer">
+      <div class="label">Ответ Любови</div>
+      <p>Порядок букв не учитывается: слово приводится к нижнему регистру, разбирается на символы, для каждого считается количество, затем значения нормируются на длину.</p>
+    </div>
+    <div class="result compact">
+      <p><code>h → 1/5 = 0.2</code></p>
+      <p><code>e → 1/5 = 0.2</code></p>
+      <p><code>l → 2/5 = 0.4</code></p>
+      <p><code>o → 1/5 = 0.2</code></p>
+    </div>
+    <ul>
+      <li><code>Hello</code> и <code>hello</code> совпадают из-за <code>text.lower()</code>.</li>
+      <li><code>hello</code> и <code>olleh</code> совпадают, потому что представление не хранит позиции.</li>
+      <li>После нормирования теряется и абсолютная длина: <code>hello</code> и <code>hellohello</code> имеют одинаковые относительные частоты.</li>
+      <li><code>features /= len(normalized_text)</code> делит весь вектор; нулевые координаты просто остаются нулями.</li>
+    </ul>
+  </section>
+
+  <section id="task3">
+    <h2>Задания 3.1–3.2. Собственный Dataset</h2>
+    <div class="task">
+      <div class="label">Задание 3.1</div>
+      <p>Сделать так, чтобы датасет возвращал тройку: признаки, исходный текст и метку.</p>
+    </div>
+    <div class="answer">
+      <div class="label">Решение</div>
+<pre><code>def __getitem__(
+    self,
+    index: int,
+) -&gt; tuple[torch.Tensor, str, torch.Tensor]:
+    text = self.texts[index]
+    features = text_to_bag_of_characters(
+        text,
+        self.character_to_id,
+    )
+    label = torch.tensor(
+        self.labels[index],
+        dtype=torch.long,
+    )
+    return features, text, label</code></pre>
+      <p>После повторного определения класса нужно заново создать объекты <code>train_dataset</code>, <code>validation_dataset</code> и <code>test_dataset</code>.</p>
+    </div>
+    <div class="task">
+      <div class="label">Задание 3.2</div>
+      <ol>
+        <li>Самостоятельно написать <code>__len__</code> и <code>__getitem__</code>.</li>
+        <li>Проверить формы и типы первого элемента.</li>
+        <li>Передать validation собственный словарь и объяснить проблему.</li>
+        <li>Проверить пустую строку и неизвестный символ.</li>
+      </ol>
+    </div>
+<pre><code>features, text, label = train_dataset[0]
+
+len(train_dataset)   # 10500
+features.shape       # torch.Size([152])
+features.dtype       # torch.float32
+label.shape          # torch.Size([])
+label.dtype          # torch.int64</code></pre>
+    <div class="note">
+      <div class="label">Почему словарь должен быть общим</div>
+      <p>Модель обучает отдельный вес для каждой координаты. Если на train <code>features[2]</code> означает частоту <code>b</code>, а в собственном словаре validation та же координата означает <code>c</code>, модель получает признаки с другим смыслом. При разном размере будет явная ошибка формы; при одинаковом — тихая смысловая ошибка.</p>
+    </div>
+    <div class="two-col">
+      <div class="result">
+        <strong>Пустая строка</strong>
+        <p>Цикл не выполняется, условие <code>if normalized_text</code> не даёт делить на ноль. Возвращается вектор из 152 нулей.</p>
+      </div>
+      <div class="result">
+        <strong>Неизвестный символ</strong>
+        <p><code>.get(character, 0)</code> отправляет его в координату <code>&lt;UNK&gt;</code>. Для строки из одного неизвестного символа <code>features[0] = 1.0</code>.</p>
+      </div>
+    </div>
+    <h3>Пять самых частых символов</h3>
+<pre><code>values, indices = torch.topk(features, k=5)
+
+for index, value in zip(indices, values):
+    character = train_dataset.vocabulary[index.item()]
+    print(f"{character!r} → {value.item():.4f}")</code></pre>
+    <p>Для текста <code>Он увеличил давление .</code> значения <code>0.1364</code> означают <code>3/22</code>. Метод <code>.item()</code> извлекает обычное Python-число из скалярного тензора.</p>
+  </section>
+
+  <section id="task4">
+    <h2>Задание 4. DataLoader и батчи</h2>
+    <div class="task">
+      <div class="label">Задание</div>
+      <p>Менять <code>BATCH_SIZE</code>, следить за формами и количеством батчей, объяснить размер последнего батча.</p>
+    </div>
+    <div class="answer">
+      <div class="label">Ответ Любови</div>
+      <p>Полных батчей — 82, в последнем останется 4 элемента. <code>len(train_loader) = 83</code>, потому что неполный батч — тоже батч.</p>
+    </div>
+    <p>Расчёт:</p>
+<pre><code>10500 = 82 × 128 + 4</code></pre>
+    <table>
+      <thead><tr><th>Батч</th><th>features</th><th>texts</th><th>labels</th></tr></thead>
+      <tbody>
+        <tr><td>обычный</td><td><code>[128, 152]</code></td><td>128 строк</td><td><code>[128]</code></td></tr>
+        <tr><td>последний</td><td><code>[4, 152]</code></td><td>4 строки</td><td><code>[4]</code></td></tr>
+      </tbody>
+    </table>
+<pre><code>batch_features, _, batch_labels = next(iter(train_loader))</code></pre>
+    <p><code>_</code> — обычная переменная, но по соглашению означает намеренно неиспользуемое значение. После изменения Dataset циклы тоже должны принимать тройку:</p>
+<pre><code>for features, _, labels in data_loader:
+    ...</code></pre>
+    <p>При <code>drop_last=True</code> неполный последний батч отбрасывается, и длина loader становится 82.</p>
+  </section>
+
+  <section id="task5">
+    <h2>Задания 5 и 5.1. Архитектуры и параметры</h2>
+    <div class="task">
+      <div class="label">Задание 5</div>
+      <ol>
+        <li>Посчитать число обучаемых параметров.</li>
+        <li>Объяснить размеры входного и выходного слоёв.</li>
+        <li>Объяснить результат <code>argmax(dim=1)</code>.</li>
+      </ol>
+    </div>
+    <p>Вход равен 152, потому что каждый объект представлен 152 координатами словаря. Выход равен 3, потому что классов три: <code>ru</code>, <code>en</code>, <code>es</code>.</p>
+    <h3>Baseline: Linear → ReLU → Linear</h3>
+<pre><code>Linear(152, 64): 152 × 64 + 64 = 9792
+ReLU:                              0
+Linear(64, 3):     64 × 3 + 3 =  195
+Итого:                          9987</code></pre>
+    <h3>LayerNorm + Swish</h3>
+<pre><code>Linear(152, 128) = 19584
+LayerNorm(128)   =   256   # gamma + beta
+Linear(128, 64)  =  8256
+LayerNorm(64)    =   128
+Linear(64, 3)    =   195
+Итого            = 28419</code></pre>
+    <h3>LayerNorm + SwiGLU</h3>
+<pre><code>LayerNorm(152)    =   304
+SwiGLU(152, 64)  = 19584   # Linear(152, 128)
+LayerNorm(64)    =   128
+SwiGLU(64, 64)   =  8320   # Linear(64, 128)
+LayerNorm(64)    =   128
+Linear(64, 3)    =   195
+Итого            = 28659</code></pre>
+    <div class="answer">
+      <div class="label">Logits и argmax</div>
+      <p><code>logits.shape == [128, 3]</code>: строки — объекты, столбцы — классы. <code>argmax(dim=1)</code> проходит по трём столбцам каждого объекта, возвращая 128 меток. Форма результата — <code>[128]</code>, а с <code>keepdim=True</code> была бы <code>[128, 1]</code>.</p>
+    </div>
+    <div class="note">
+      <div class="label">Почему без Softmax в forward</div>
+      <p><code>CrossEntropyLoss</code> принимает сырые логиты и численно устойчиво объединяет <code>LogSoftmax + NLLLoss</code>. Если применить Softmax заранее, loss воспримет вероятности как новые логиты и ещё раз выполнит преобразование. Для выбора класса Softmax не нужен: он меняет значения, но не позицию максимума.</p>
+    </div>
+    <div class="task">
+      <div class="label">Задание 5.1</div>
+      <p>Сравнить три архитектуры при одинаковых данных, числе эпох и learning rate; менять <code>HIDDEN_SIZE</code>; попробовать Dropout или residual-связь; оценивать не только train accuracy, но и validation.</p>
+    </div>
+    <table>
+      <thead><tr><th>Модель</th><th class="num">Параметры</th><th class="num">Лучший val loss</th><th class="num">Лучшая val accuracy</th></tr></thead>
+      <tbody>
+        <tr><td>LanguageClassifier</td><td class="num">9 987</td><td class="num">0.0719</td><td class="num">98.80%</td></tr>
+        <tr><td>LayerNormSwishClassifier</td><td class="num">28 419</td><td class="num">0.0234</td><td class="num">99.20%</td></tr>
+        <tr><td>SwiGLUClassifier</td><td class="num">28 659</td><td class="num">0.0220</td><td class="num">99.40%</td></tr>
+      </tbody>
+    </table>
+    <p>На 1500 validation-примерах это примерно 1482, 1488 и 1491 правильный ответ соответственно. SwiGLU даёт около 9 дополнительных правильных ответов относительно baseline. Параметров почти втрое больше, но абсолютный размер модели остаётся крошечным. Для строгого вывода нужны повторения с несколькими seed.</p>
+  </section>
+
+  <section id="task6">
+    <h2>Задание 6. Цикл одной эпохи</h2>
+    <div class="task">
+      <div class="label">Задание</div>
+      <p>Восстановить пять шагов обучения и объяснить режимы модели, отключение градиентов и усреднение loss.</p>
+    </div>
+<pre><code>optimizer.zero_grad(set_to_none=True)
+
+logits = model(features)
+loss = loss_function(logits, labels)
+
+loss.backward()
+optimizer.step()</code></pre>
+    <table>
+      <thead><tr><th>Операция</th><th>Роль</th></tr></thead>
+      <tbody>
+        <tr><td><code>model.train()</code></td><td>Dropout работает; BatchNorm использует и обновляет статистики батча.</td></tr>
+        <tr><td><code>model.eval()</code></td><td>Dropout выключен; BatchNorm использует накопленные статистики.</td></tr>
+        <tr><td><code>torch.no_grad()</code></td><td>Не строит граф и не вычисляет градиенты; экономит память и время.</td></tr>
+        <tr><td><code>loss.backward()</code></td><td>Вычисляет производные и записывает их в <code>parameter.grad</code>.</td></tr>
+        <tr><td><code>optimizer.step()</code></td><td>Обновляет веса по накопленным градиентам.</td></tr>
+      </tbody>
+    </table>
+    <p><code>eval()</code> не отключает autograd и сам по себе не запрещает <code>optimizer.step()</code>. Накопленные статистики BatchNorm — не то же самое, что его обучаемые <code>weight</code> и <code>bias</code>.</p>
+    <h3>Зачем <code>set_to_none=True</code></h3>
+    <p><code>zero_grad(set_to_none=True)</code> устанавливает <code>parameter.grad = None</code> вместо заполнения существующего тензора нулями. При следующем backward градиент создаётся заново; это обычно экономнее.</p>
+    <h3>Подсчёт правильных ответов</h3>
+<pre><code>total_correct += (
+    logits.argmax(dim=1) == labels
+).sum().item()</code></pre>
+    <p>Сначала создаётся булева маска, затем <code>sum()</code> считает <code>True</code> как единицы, а <code>.item()</code> переводит скалярный тензор в число Python.</p>
+    <h3>Средний loss по объектам</h3>
+<pre><code>total_loss += loss.item() * batch_size
+...
+average_loss = total_loss / total_examples</code></pre>
+    <p>CrossEntropy возвращает среднее внутри батча. Умножение восстанавливает сумму, после чего деление на общее число объектов даёт честное среднее по примерам. Иначе последний батч из 4 объектов получил бы такой же вес, как полный батч из 128.</p>
+  </section>
+
+  <section id="task7">
+    <h2>Задание 7. Обучение и диагностика</h2>
+    <div class="task">
+      <div class="label">Задание</div>
+      <ol>
+        <li>Сравнить train loss и validation loss.</li>
+        <li>Изменить ширину, learning rate или число эпох.</li>
+        <li>Определять недообучение и переобучение.</li>
+        <li>Объяснить, почему после смены архитектуры нужно заново создать model и optimizer.</li>
+      </ol>
+    </div>
+    <div class="answer">
+      <div class="label">Диагностика</div>
+      <ul>
+        <li><strong>Недообучение:</strong> оба loss остаются большими, модель плохо работает даже на train. Если оба уверенно падают, обучение, возможно, просто ещё не завершено.</li>
+        <li><strong>Нормальное обучение:</strong> оба уменьшаются, validation достигает хорошего минимума, разрыв остаётся умеренным.</li>
+        <li><strong>Переобучение:</strong> train loss продолжает падать, а validation loss после минимума устойчиво растёт.</li>
+      </ul>
+      <p>Одно плато validation ещё не доказывает переобучение. Большой разрыв «низкий train — высокий validation» является признаком generalization gap.</p>
+    </div>
+    <h3>Baseline: история обучения</h3>
+    <table>
+      <thead><tr><th>Epoch</th><th class="num">Train loss</th><th class="num">Train acc</th><th class="num">Val loss</th><th class="num">Val acc</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="num">1.0175</td><td class="num">72.94%</td><td class="num">0.8566</td><td class="num">96.73%</td></tr>
+        <tr><td>2</td><td class="num">0.6831</td><td class="num">93.35%</td><td class="num">0.5431</td><td class="num">87.93%</td></tr>
+        <tr><td>3</td><td class="num">0.4928</td><td class="num">89.82%</td><td class="num">0.4434</td><td class="num">98.27%</td></tr>
+        <tr><td>4</td><td class="num">0.4028</td><td class="num">98.58%</td><td class="num">0.3504</td><td class="num">98.80%</td></tr>
+        <tr><td>5</td><td class="num">0.3096</td><td class="num">98.77%</td><td class="num">0.2578</td><td class="num">98.73%</td></tr>
+        <tr><td>6</td><td class="num">0.2266</td><td class="num">98.71%</td><td class="num">0.1855</td><td class="num">98.73%</td></tr>
+        <tr><td>7</td><td class="num">0.1655</td><td class="num">98.89%</td><td class="num">0.1364</td><td class="num">98.80%</td></tr>
+        <tr><td>8</td><td class="num">0.1254</td><td class="num">98.87%</td><td class="num">0.1056</td><td class="num">98.80%</td></tr>
+        <tr><td>9</td><td class="num">0.0986</td><td class="num">98.93%</td><td class="num">0.0855</td><td class="num">98.80%</td></tr>
+        <tr><td>10</td><td class="num">0.0809</td><td class="num">98.96%</td><td class="num">0.0719</td><td class="num">98.80%</td></tr>
+      </tbody>
+    </table>
+    <p>Accuracy насытилась около эпохи 4, а loss продолжил падать: правильные классы не изменились, но модель стала увереннее. Validation может быть лучше train в начале, потому что train-метрика усредняет состояние модели в течение всей эпохи, а validation запускается уже после её завершения.</p>
+    <h3>Глубокие модели</h3>
+    <div class="two-col">
+      <div>
+        <strong>LayerNorm + Swish</strong>
+<pre><code>epoch  train   validation
+1      0.2359  0.0475
+2      0.0295  0.0344
+3      0.0209  0.0273
+4      0.0157  0.0244
+5      0.0161  0.0271
+6      0.0120  0.0311
+7      0.0114  0.0274
+8      0.0138  0.0234  ← best
+9      0.0104  0.0267
+10     0.0111  0.0301</code></pre>
+      </div>
+      <div>
+        <strong>LayerNorm + SwiGLU</strong>
+<pre><code>epoch  train   validation
+1      0.0871  0.0400
+2      0.0195  0.0278
+3      0.0185  0.0264
+4      0.0092  0.0268
+5      0.0161  0.0277
+6      0.0082  0.0441
+7      0.0084  0.0235
+8      0.0067  0.0226
+9      0.0049  0.0286
+10     0.0049  0.0220  ← best</code></pre>
+      </div>
+    </div>
+    <p>Swish показывает лёгкое переобучение после эпохи 8. У SwiGLU есть большой и шумный generalization gap, но эпоха 10 даёт новый минимум validation loss, поэтому утверждать об окончательном переобучении нельзя.</p>
+    <div class="note">
+      <div class="label">Новый optimizer обязателен</div>
+      <p>Optimizer хранит ссылки на конкретные тензоры параметров и собственное состояние. После создания нового объекта модели старый optimizer продолжил бы обслуживать старые веса.</p>
+    </div>
+  </section>
+
+  <section id="task8">
+    <h2>Задание 8. Финальная оценка и ошибки</h2>
+    <div class="task">
+      <div class="label">Задание</div>
+      <p>Оценить выбранную модель на test, найти несколько ошибок и объяснить, почему одной accuracy недостаточно.</p>
+    </div>
+    <div class="result">
+      <p><strong>SwiGLUClassifier:</strong> <code>test_loss = 0.0220</code>, <code>test_accuracy = 0.9940</code>.</p>
+      <p>Правильно классифицировано <strong>1491 из 1500</strong> текстов.</p>
+    </div>
+<pre><code>rows = true, columns = predicted
+
+       ru   en   es
+ru    500    0    0
+en      0  494    6
+es      0    3  497</code></pre>
+    <table>
+      <thead><tr><th>Класс</th><th class="num">Precision</th><th class="num">Recall</th><th class="num">F1</th></tr></thead>
+      <tbody>
+        <tr><td>ru</td><td class="num">1.000</td><td class="num">1.000</td><td class="num">1.000</td></tr>
+        <tr><td>en</td><td class="num">0.994</td><td class="num">0.988</td><td class="num">0.991</td></tr>
+        <tr><td>es</td><td class="num">0.988</td><td class="num">0.994</td><td class="num">0.991</td></tr>
+      </tbody>
+    </table>
+    <h3>Все девять ошибок</h3>
+    <table>
+      <thead><tr><th>Текст</th><th>True</th><th>Pred</th><th class="num">Confidence</th></tr></thead>
+      <tbody>
+        <tr><td>Good quality replacement</td><td>en</td><td>es</td><td class="num">0.999</td></tr>
+        <tr><td>It loses data and files become corrupt on a regular basis. Piece of junk.</td><td>en</td><td>es</td><td class="num">0.978</td></tr>
+        <tr><td>Salen muy bien! Divertido</td><td>es</td><td>en</td><td class="num">0.946</td></tr>
+        <tr><td>Bien muy bonitos gran surtido .</td><td>es</td><td>en</td><td class="num">0.959</td></tr>
+        <tr><td>Excellent colour and quality of material. Also very spacious and handy.</td><td>en</td><td>es</td><td class="num">0.995</td></tr>
+        <tr><td>Nice phone, great price</td><td>en</td><td>es</td><td class="num">0.792</td></tr>
+        <tr><td>Esta muy bien hecha El trato ha sido extraordinario</td><td>es</td><td>en</td><td class="num">0.510</td></tr>
+        <tr><td>I got a defective one</td><td>en</td><td>es</td><td class="num">0.862</td></tr>
+        <tr><td>Not at all comfortable rides up</td><td>en</td><td>es</td><td class="num">0.841</td></tr>
+      </tbody>
+    </table>
+    <div class="answer">
+      <div class="label">Разбор</div>
+      <ul>
+        <li>Кириллица отделяет русский язык почти безошибочно.</li>
+        <li>Английский и испанский используют общий латинский алфавит.</li>
+        <li>Испанские примеры без характерных <code>ñ</code>, <code>á</code>, <code>¿</code>, <code>¡</code> особенно трудны.</li>
+        <li>Короткие фразы дают шумные оценки частот.</li>
+        <li>Высокая уверенность Softmax не равна пониманию: несколько неправильных ответов имеют confidence около 0.99.</li>
+      </ul>
+      <p>Сомнителен не символьный подход вообще, а именно неупорядоченный unigram Bag of Characters. Символьные n-граммы, CNN или RNN сохранили бы сочетания <code>th</code>, <code>ing</code>, <code>que</code>, <code>ción</code>.</p>
+    </div>
+  </section>
+
+  <section id="task9">
+    <h2>Задание 9. Сохранение и инференс</h2>
+    <div class="task">
+      <div class="label">Задание</div>
+      <ol>
+        <li>Проверить собственные фразы разной длины.</li>
+        <li>Проверить смешанный текст и вероятности.</li>
+        <li>Загрузить веса и словарь в новый объект и проверить совпадение.</li>
+      </ol>
+    </div>
+    <h3>Сохранение самодостаточного checkpoint</h3>
+<pre><code>torch.save(
+    {
+        "model_state_dict": model.state_dict(),
+        "model_class": model.__class__.__name__,
+        "vocabulary": train_dataset.vocabulary,
+        "hidden_size": HIDDEN_SIZE,
+        "id_to_language": ID_TO_LANGUAGE,
+    },
+    ARTIFACT_PATH,
+)</code></pre>
+    <h3>Восстановление</h3>
+<pre><code>MODEL_REGISTRY = {
+    "LanguageClassifier": LanguageClassifier,
+    "LayerNormSwishClassifier": LayerNormSwishClassifier,
+    "SwiGLUClassifier": SwiGLUClassifier,
+}
+
+checkpoint = torch.load(
+    ARTIFACT_PATH,
+    map_location=device,
+)
+
+model_class = MODEL_REGISTRY[checkpoint["model_class"]]
+
+loaded_model = model_class(
+    input_size=len(checkpoint["vocabulary"]),
+    hidden_size=checkpoint["hidden_size"],
+    output_size=len(checkpoint["id_to_language"]),
+).to(device)
+
+loaded_model.load_state_dict(checkpoint["model_state_dict"])
+loaded_model.eval()</code></pre>
+    <h3>Проверка идентичности</h3>
+<pre><code>assert original_language == loaded_language
+
+assert torch.allclose(
+    torch.tensor(original_probabilities),
+    torch.tensor(loaded_probabilities),
+)</code></pre>
+    <div class="answer">
+      <div class="label">Результат</div>
+      <p class="good">Предсказанный класс и вероятности исходной и восстановленной моделей совпали идентично.</p>
+      <p>Это подтверждает согласованность всей цепочки: архитектуры, весов, словаря, индексов признаков и соответствия меток языкам.</p>
+    </div>
+  </section>
+
+  <section id="summary">
+    <h2>Финальная карта знаний</h2>
+    <ul>
+      <li>Словарь и остальные обучаемые преобразования строятся только по train.</li>
+      <li>Dataset возвращает один объект, DataLoader формирует батч.</li>
+      <li>Модель выдаёт логиты, CrossEntropy сама выполняет нужное log-softmax-преобразование.</li>
+      <li><code>backward()</code> вычисляет градиенты; <code>step()</code> обновляет параметры.</li>
+      <li><code>eval()</code> и <code>no_grad()</code> решают разные задачи.</li>
+      <li>Validation выбирает модель; test один раз оценивает выбранное решение.</li>
+      <li>Accuracy дополняют confusion matrix, per-class метрики и ручной анализ ошибок.</li>
+      <li>Для воспроизводимого inference нужны веса, архитектура, размерности, словарь и mapping меток.</li>
+    </ul>
+  </section>
+
+  <footer>Учебный конспект по проекту определения языка • PyTorch • ru / en / es</footer>
+</main>
+</body>
+</html>

@@ -1,36 +1,25 @@
-from transformers import AutoTokenizer, BertTokenizer
+from transformers import AutoTokenizer
 
-tokenized_text = 'Jim Henson was a puppeteer'.split()
-print(tokenized_text)
+def inspect_tokenizer(model_name: str, text: str) -> None:
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    inputs = tokenizer(text, return_tensors='pt')
 
-tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
-inputs = tokenizer("Let's try to tokenize!")
-print('Auto', inputs)
+    input_ids = inputs['input_ids'][0]
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-inputs = tokenizer("Let's try to tokenize!")
-print('Bert', inputs)
+    print(f'\nMODEL: {model_name}')
+    print(f'Tokenizer class: {type(tokenizer).__name__}')
+    print(f"Is fast: {tokenizer.is_fast}")
+    print(f"Inputs: {inputs}")
+    print(f"Tokenize: {tokenizer.tokenize(text)}")
+    print(f"Tokens: {tokenizer.convert_ids_to_tokens(input_ids)}")
+    print(f'Input IDs: {input_ids.tolist()}')
+    print(f'Attention mask: {inputs['attention_mask'][0].tolist()}')
+    if 'token_type_ids' in inputs:
+        print(f'Token type IDs: {inputs['token_type_ids'][0].tolist()}')
+    print(f'Decoded: {tokenizer.decode(input_ids)}')
+    print(f"Decoded without special tokens: {tokenizer.decode(input_ids, skip_special_tokens=True)}")
+    print(f'Tensor shape: {inputs['input_ids']}')
 
-tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
-inputs = tokenizer("Let's try to tokenize!")
-print(inputs)
-print(inputs['input_ids'])
-tokens = tokenizer.tokenize("Let's try to tokenize!")
-inputs_ids = tokenizer.convert_tokens_to_ids(tokens)
-final_input_ids = [
-    tokenizer.cls_token_id,
-    *inputs_ids,
-    tokenizer.sep_token_id,
-]
-print(tokens)
-print(inputs_ids)
-print(final_input_ids)
-print(tokenizer.decode(inputs['input_ids']))
+text = "Let's try to tokenize!"
 
-tokenizer = AutoTokenizer.from_pretrained('albert-base-v1')
-tokens = tokenizer.tokenize("Let's try to tokenize!")
-print(tokens)
-
-tokenizer = AutoTokenizer.from_pretrained('roberta-base')
-inputs = tokenizer("Let's try to tokenize!")
-print(tokenizer.decode(inputs['input_ids']))
+inspect_tokenizer("bert-base-cased", text)
