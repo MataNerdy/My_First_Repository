@@ -1,7 +1,17 @@
 from bs4 import BeautifulSoup
 from collections import Counter
 import hashlib
+import re
 
+
+EMAIL_RE = re.compile(
+    r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b"
+)
+
+PHONE_RE = re.compile(
+    r"(?<!\d)(?:\+7|8)[\s-]?\(?\d{3}\)?"
+    r"[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}(?!\d)"
+)
 
 def extract_text(html: str) -> str:
   soup = BeautifulSoup(html, 'html.parser')
@@ -124,3 +134,49 @@ def remove_near_duplicates(texts: list[str], n: int=2, threshold: float=0.4) -> 
     if not duples_found:
       unique_texts.append(t)
   return unique_texts
+
+def anonymize_pii(text: str) -> tuple[str, dict[str, int]]:
+  result, email_count = EMAIL_RE.subn('[EMAIL]', text)
+  result, phone_count = PHONE_RE.subn('[PHONE]', result)
+  report = {
+      'emails': email_count,
+      'phones': phone_count
+  }
+  return result, report
+
+def remove_exact_duplicate_documents(documents: list[dict]) -> tuple[list[dict], list[dict]]:
+  seen_hashes = {}
+
+  unique_documents = []
+  duplicate_documents = []
+
+  for d in documents:
+    text_hash = get_text_hash(d['text'])
+    if text_hash in seen_hashes:
+      duplicate_documents.append({
+          **d, 'duplicate_of': seen_hashes[text_hash]
+      })
+    else:
+      unique_documents.append(d)
+      seen_hashes[text_hash] = d['id']
+  return unique_documents, duplicate_documents
+
+def remove_near_duplicate_documents(documents: list[dict], n: int=2, threshold: float=0.4) -> tuple[list[dict], list[dict]]:
+  unique_documents = []
+  duplicate_documents = []
+
+  for d in documents:
+    duplicate_of = None
+    for u in unique_documents:
+      if are_near_duplicates(d['text'], u['text'], n, threshold):
+        duplicate_of = u['id']
+        break
+    if duplicate_of is not None:
+        duplicate_documents.append({
+            **d,
+            'duplicate_of': duplicate_of
+        })
+    else:
+        unique_documents.append(d)
+
+  return unique_documents, duplicate_documents
