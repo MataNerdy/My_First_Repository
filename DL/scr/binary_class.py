@@ -1,21 +1,20 @@
 import torch
-import torch.nn as nn
+from torch import nn
 
-class NeuralNet2(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
-        super(NeuralNet2, self).__init__()
+
+class NeuralNet1(nn.Module):
+    def __init__(self, input_size, hidden_size):
+        super().__init__()
         self.linear1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
-        self.linear2 = nn.Linear(hidden_size, num_classes)
+        self.linear2 = nn.Linear(hidden_size, 1)
 
     def forward(self, x):
         out = self.linear1(x)
         out = self.relu(out)
         out = self.linear2(out)
-        return out
+        y_pred = torch.sigmoid(out)
+        return y_pred
 
-    def forward(self, x):
-        out = self.linear1(x)
-        out = self.relu(out)
-        out = self.linear2(out)
-        return out
+model = NeuralNet1(input_size=28*28, hidden_size=5)
+criterion = nn.BCELoss()

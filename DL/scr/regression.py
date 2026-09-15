@@ -2,7 +2,7 @@ import math
 
 import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 torch.manual_seed(42)

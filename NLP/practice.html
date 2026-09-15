@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Что мы заботали — NLP и поиск</title>
+
+  <style>
+    :root {
+      --background: #f5f1ea;
+      --paper: #fffdf9;
+      --text: #29251f;
+      --muted: #746d64;
+      --line: #ded5c8;
+      --purple: #7454c6;
+      --green: #287d70;
+      --orange: #cf6848;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        linear-gradient(
+          135deg,
+          #eee7fb,
+          var(--background) 45%,
+          #eaf6f2
+        );
+      font: 16px/1.62 system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    .layout {
+      max-width: 1200px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 25px;
+      padding: 25px;
+    }
+
+    aside {
+      position: sticky;
+      top: 15px;
+      align-self: start;
+      max-height: calc(100vh - 30px);
+      overflow: auto;
+      padding: 19px;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    #search {
+      width: 100%;
+      margin: 15px 0;
+      padding: 10px 12px;
+      color: var(--text);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 8px;
+      color: var(--text);
+      font-size: 14px;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+
+    nav a:hover {
+      color: var(--purple);
+      background: #eee8fc;
+    }
+
+    .hero,
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 12px 35px rgba(81, 70, 56, 0.08);
+    }
+
+    .hero {
+      padding: 38px;
+      margin-bottom: 20px;
+    }
+
+    section {
+      padding: 29px;
+      margin-bottom: 20px;
+    }
+
+    section.hidden {
+      display: none;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 0 0 16px;
+      font-size: clamp(36px, 5vw, 57px);
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 29px;
+      line-height: 1.16;
+      letter-spacing: -0.025em;
+    }
+
+    h3 {
+      margin: 25px 0 8px;
+      font-size: 20px;
+    }
+
+    p {
+      margin: 8px 0 14px;
+    }
+
+    .lead {
+      max-width: 800px;
+      color: #514b43;
+      font-size: 19px;
+    }
+
+    .kicker {
+      margin-bottom: 5px;
+      color: var(--purple);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      margin: 16px 0;
+    }
+
+    .flow span {
+      padding: 7px 10px;
+      background: #f1ede7;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-weight: 650;
+    }
+
+    .flow b {
+      color: var(--purple);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 19px 0;
+    }
+
+    .card {
+      padding: 16px;
+      background: white;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--purple);
+      border-radius: 15px;
+    }
+
+    .card:first-child {
+      border-top-color: var(--green);
+    }
+
+    .card:nth-child(2) {
+      border-top-color: #d09a30;
+    }
+
+    .card strong {
+      display: block;
+      font-size: 21px;
+    }
+
+    table {
+      width: 100%;
+      margin: 15px 0;
+      font-size: 14px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    code {
+      padding: 2px 5px;
+      background: #eee9e3;
+      border-radius: 5px;
+      font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 16px;
+      color: #f7f2ff;
+      background: #242129;
+      border-radius: 14px;
+      font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    pre code {
+      padding: 0;
+      color: inherit;
+      background: none;
+    }
+
+    .note,
+    .result,
+    .warning {
+      margin: 15px 0;
+      padding: 13px 15px;
+      border-left: 4px solid;
+      border-radius: 0 12px 12px 0;
+    }
+
+    .note {
+      background: #f0ebfb;
+      border-color: var(--purple);
+    }
+
+    .result {
+      background: #e9f6f1;
+      border-color: var(--green);
+    }
+
+    .warning {
+      background: #fff0e9;
+      border-color: var(--orange);
+    }
+
+    details {
+      margin: 11px 0;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+    }
+
+    summary {
+      padding: 13px 16px;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    details > div {
+      padding: 0 16px 14px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      color: #17665a;
+      background: #e8f5f0;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .tag.todo {
+      color: #5b40a8;
+      background: #eee7fc;
+    }
+
+    .checklist {
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      display: flex;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    input[type="checkbox"] {
+      margin-top: 6px;
+      accent-color: var(--purple);
+    }
+
+    footer {
+      padding: 15px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        display: block;
+        padding: 12px;
+      }
+
+      aside {
+        position: relative;
+        max-height: none;
+        margin-bottom: 14px;
+      }
+
+      nav {
+        columns: 2;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      section {
+        padding: 22px;
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      aside {
+        display: none;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      .hero,
+      section {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+
+    <aside>
+      <div class="brand">NLP × поиск</div>
+      <div class="muted">Карта нашей большой беседы</div>
+
+      <input
+        id="search"
+        type="search"
+        placeholder="Найти тему…"
+      >
+
+      <nav>
+        <a href="#map">Общая карта</a>
+        <a href="#classifier">1. Классификатор языка</a>
+        <a href="#filtering">2. Очистка корпуса</a>
+        <a href="#tokenizers">3. Токенизаторы</a>
+        <a href="#tfidf">4. TF-IDF и BM25</a>
+        <a href="#punctuation">5. Пунктуация ASR</a>
+        <a href="#roadmap">Что дальше</a>
+        <a href="#glossary">Мини-шпаргалка</a>
+      </nav>
+
+      <p class="muted">
+        Сначала читай выводы. Технические подробности спрятаны
+        в раскрывающиеся блоки.
+      </p>
+    </aside>
+
+    <main>
+
+      <div class="hero">
+        <div class="kicker">Учебный конспект · сентябрь 2026</div>
+
+        <h1>Что именно мы заботали</h1>
+
+        <p class="lead">
+          Не пересказ огромного Markdown и не свалка кода,
+          а маршрут: как сырые тексты превратить в качественный
+          корпус, числовое представление, результаты поиска
+          и будущий RAG.
+        </p>
+      </div>
+
+      <section id="map">
+        <div class="kicker">Смысл всей практики</div>
+
+        <h2>Одна система, а не набор случайных ноутбуков</h2>
+
+        <div class="flow">
+          <span>HTML / ASR</span>
+          <b>→</b>
+          <span>очистка и PII</span>
+          <b>→</b>
+          <span>определение языка</span>
+          <b>→</b>
+          <span>токенизация</span>
+          <b>→</b>
+          <span>представление текста</span>
+          <b>→</b>
+          <span>поиск</span>
+          <b>→</b>
+          <span>метрики</span>
+          <b>→</b>
+          <span>RAG</span>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <strong>Закрыто</strong>
+            BoC-классификатор, очистка корпуса, дедупликация,
+            токенизаторы и ASR-пунктуация.
+          </div>
+
+          <div class="card">
+            <strong>В работе</strong>
+            Ручной TF-IDF, cosine similarity, устройство BM25
+            и поискового пайплайна.
+          </div>
+
+          <div class="card">
+            <strong>Дальше</strong>
+            Обратный индекс, полноценный BM25, метрики
+            и сравнение с vector search.
+          </div>
+        </div>
+
+        <div class="note">
+          <strong>Главное переосмысление:</strong>
+          сначала мы делаем корпус пригодным для работы,
+          затем представляем тексты числами, находим документы
+          и измеряем качество поиска.
+        </div>
+      </section>
+
+      <section id="classifier">
+        <div class="kicker">Шаг 1 · закрыт</div>
+
+        <h2>Классификатор языка ru / en / es</h2>
+
+        <p>
+          Исходный вариант на fastai ты переписала на чистый
+          PyTorch и разобрала весь путь данных.
+        </p>
+
+        <div class="flow">
+          <span>CSV</span>
+          <b>→</b>
+          <span>Dataset</span>
+          <b>→</b>
+          <span>DataLoader</span>
+          <b>→</b>
+          <span>model</span>
+          <b>→</b>
+          <span>CrossEntropyLoss</span>
+          <b>→</b>
+          <span>backward</span>
+          <b>→</b>
+          <span>validation / test</span>
+        </div>
+
+        <h3>Bag of Characters</h3>
+
+        <p>
+          Символьный словарь строится только по
+          <code>train</code>. Токен <code>&lt;UNK&gt;</code>
+          получает индекс 0, а остальные символы из
+          <code>text.lower()</code> сортируются.
+        </p>
+
+        <p>
+          Каждый текст превращается в вектор частот символов,
+          нормированный на длину строки.
+        </p>
+
+        <div class="warning">
+          <strong>Главное ограничение:</strong>
+          порядок символов полностью теряется.
+          <code>hello</code> и <code>olleh</code>
+          дают одинаковое представление.
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Архитектура</th>
+              <th>Параметры</th>
+              <th>Основная идея</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>LanguageClassifier</td>
+              <td>9 987</td>
+              <td>Базовая полносвязная сеть</td>
+            </tr>
+
+            <tr>
+              <td>LayerNormSwish</td>
+              <td>28 419</td>
+              <td>LayerNorm и нелинейность Swish</td>
+            </tr>
+
+            <tr>
+              <td>SwiGLUClassifier</td>
+              <td>28 659</td>
+              <td>Проекция делится на value и gate</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="result">
+          <strong>Лучший результат SwiGLU:</strong>
+
+          test loss = 0.0220,
+          accuracy = <strong>0.9940</strong> — 1491 из 1500.
+
+          Русский: 500/500. Английский: 6 ошибок в испанский.
+          Испанский: 3 ошибки в английский.
+          F1 для en/es ≈ 0.991.
+        </div>
+
+        <details>
+          <summary>Что мы разобрали вокруг обучения</summary>
+
+          <div>
+            <ul>
+              <li>
+                <code>CrossEntropyLoss</code> принимает logits:
+                Softmax перед loss не нужен.
+              </li>
+
+              <li>
+                <code>argmax(dim=1)</code> выбирает класс
+                отдельно для каждого объекта батча.
+              </li>
+
+              <li>
+                <code>model.eval()</code> меняет поведение слоёв,
+                но не отключает вычисление градиентов.
+              </li>
+
+              <li>
+                Для инференса нужен <code>torch.no_grad()</code>
+                или <code>torch.inference_mode()</code>.
+              </li>
+
+              <li>
+                <code>zero_grad(set_to_none=True)</code>
+                очищает накопленные градиенты.
+              </li>
+
+              <li>
+                DataLoader не балансирует классы.
+                <code>shuffle=True</code> только перемешивает данные.
+              </li>
+
+              <li>
+                Train обучает модель, validation помогает выбирать
+                архитектуру и гиперпараметры, test используется
+                для финальной оценки.
+              </li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Ошибки модели и проблема confidence</summary>
+
+          <div>
+            <p>
+              Ошибки были почти только между английским и испанским:
+              <em>Good quality replacement</em>,
+              <em>Nice phone, great price</em>,
+              <em>Salen muy bien! Divertido</em>.
+            </p>
+
+            <p>
+              Иногда неправильное предсказание имело confidence
+              около 0.99.
+            </p>
+
+            <p>
+              <strong>Вывод:</strong>
+              Softmax показывает уверенность модели внутри её
+              собственной картины мира, а не вероятность того,
+              что модель действительно поняла текст.
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Что сохраняется в checkpoint</summary>
+
+          <div>
+            <pre><code>{
+    "model_state_dict": ...,
+    "model_class": "SwiGLUClassifier",
+    "vocabulary": vocabulary,
+    "hidden_size": HIDDEN_SIZE,
+    "id_to_language": ID_TO_LANGUAGE
+}</code></pre>
+
+            <p>
+              При загрузке сначала создаётся правильная архитектура
+              через registry, затем вызываются
+              <code>load_state_dict()</code> и <code>eval()</code>.
+            </p>
+          </div>
+        </details>
+
+        <div class="note">
+          <strong>Зачем классификатор поисковой системе:</strong>
+          он может фильтровать корпус по языку или маршрутизировать
+          запрос в нужный индекс и нужную модель.
+        </div>
+      </section>
+
+      <section id="filtering">
+        <div class="kicker">Шаг 2 · закрыт</div>
+
+        <h2>Очистка веб-корпуса в духе FineWeb</h2>
+
+        <div class="flow">
+          <span>сырой HTML</span>
+          <b>→</b>
+          <span>извлечение текста</span>
+          <b>→</b>
+          <span>нормализация</span>
+          <b>→</b>
+          <span>quality-фильтры</span>
+          <b>→</b>
+          <span>PII</span>
+          <b>→</b>
+          <span>дедупликация</span>
+        </div>
+
+        <h3>Извлечение текста</h3>
+
+        <p>
+          BeautifulSoup удаляет
+          <code>script</code>, <code>style</code>,
+          <code>nav</code>, <code>footer</code>,
+          <code>header</code>, <code>aside</code>,
+          <code>noscript</code>, <code>form</code>
+          и cookie/banner-блоки.
+        </p>
+
+        <p>
+          Текст извлекается через
+          <code>get_text(separator="\n", strip=True)</code>.
+          Trafilatura рассматривалась как более умный экстрактор
+          основного содержимого страницы.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Проверка</th>
+              <th>Что измеряет</th>
+              <th>Порог</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td><code>check_min_length</code></td>
+              <td><code>len(text) &gt; 50</code></td>
+              <td>Иначе <code>too_short</code></td>
+            </tr>
+
+            <tr>
+              <td><code>repeated_line_ratio</code></td>
+              <td>Доля строк из повторяющихся групп</td>
+              <td><code>&gt;= 0.5</code></td>
+            </tr>
+
+            <tr>
+              <td><code>short_lines_ratio</code></td>
+              <td>Доля непустых строк короче 30 символов</td>
+              <td><code>&gt;= 0.5</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="result">
+          <strong>Краш-тест фильтров:</strong>
+
+          документ 1 принят;
+          документ 2 отклонён как
+          <code>too_short + short_lines</code>;
+          документ 3 — как <code>repeated_lines</code>;
+          документ 4 — как
+          <code>too_short + short_lines</code>.
+
+          У меню repeated ratio = 1.0, у статьи = 0.0.
+        </div>
+
+        <h3>Маскирование PII</h3>
+
+        <p>
+          <code>anonymize_pii()</code> заменяет email и телефон
+          на <code>[EMAIL]</code> и <code>[PHONE]</code>,
+          а также возвращает количество замен.
+        </p>
+
+        <pre><code>Напишите Анне на [EMAIL]
+или позвоните по номеру [PHONE].
+
+{"emails": 1, "phones": 1}</code></pre>
+
+        <div class="warning">
+          <strong>Важная ловушка:</strong>
+          второй <code>subn</code> должен получать результат первого.
+          Если снова передать исходный <code>text</code>,
+          замаскированный email появится обратно.
+
+          Regex остаются эвристикой: возможны false positive
+          и false negative.
+        </div>
+
+        <h3>Дедупликация</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Тип</th>
+              <th>Как работает</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>Exact duplicates</td>
+              <td>
+                Нормализация пробелов → lowercase → UTF-8 →
+                SHA-256. В <code>seen_hashes</code> сохраняется
+                первое вхождение.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Near duplicates</td>
+              <td>
+                Word n-grams → множества →
+                Jaccard:
+                <code>|A ∩ B| / |A ∪ B|</code>.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Большой корпус</td>
+              <td>
+                MinHash приближённо оценивает Jaccard.
+                Его мы сознательно отложили до понимания
+                обычной версии.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <details>
+          <summary>Какие функции мы написали</summary>
+
+          <div>
+            <p>
+              <code>normalize_whitespace</code>,
+              <code>repeated_line_ratio</code>,
+              <code>short_lines_ratio</code>,
+              <code>get_quality_issues</code>,
+              <code>anonymize_pii</code>,
+              <code>get_text_hash</code>,
+              <code>remove_exact_duplicates</code>,
+              <code>get_word_ngrams</code>,
+              <code>jaccard_similarity</code>,
+              <code>are_near_duplicates</code>,
+              <code>remove_near_duplicates</code>.
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Крайние случаи Jaccard</summary>
+
+          <div>
+            <ul>
+              <li>
+                При пустом объединении нужна отдельная обработка.
+              </li>
+
+              <li>
+                <code>кот</code> и <code>пёс</code> при
+                <code>n=3</code> оба не создают n-грамм,
+                но не являются дублями.
+              </li>
+
+              <li>
+                Если n-грамм нет, сравниваем нормализованные
+                строки напрямую.
+              </li>
+
+              <li>
+                <code>n=2, threshold=0.4</code> удобны для коротких
+                учебных текстов.
+              </li>
+
+              <li>
+                <code>n=3, threshold=0.9</code> —
+                более осторожная дедупликация.
+              </li>
+
+              <li>
+                При <code>n &lt;= 0</code> логично выбрасывать
+                <code>ValueError</code>.
+              </li>
+            </ul>
+          </div>
+        </details>
+      </section>
+
+      <section id="tokenizers">
+        <div class="kicker">Шаг 3 · закрыт</div>
+
+        <h2>BPE, WordPiece и Unigram / SentencePiece</h2>
+
+        <p>
+          Токенизаторы сравнивались по одному маршруту:
+          <code>encoding → input_ids → tokens → decode</code>.
+          При этом загружались файлы токенизатора,
+          а не веса большой Qwen.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Токенизатор</th>
+              <th>Семейство</th>
+              <th>Что заметили</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>Qwen/Qwen3.6-27B</td>
+              <td>Byte-level BPE</td>
+              <td>
+                Маркер <code>Ġ</code> и байтовые фрагменты
+                русского текста вида <code>Ð¡Ñ...</code>
+              </td>
+            </tr>
+
+            <tr>
+              <td>bert-base-multilingual-cased</td>
+              <td>WordPiece</td>
+              <td>
+                <code>##</code> означает продолжение слова
+              </td>
+            </tr>
+
+            <tr>
+              <td>google/mt5-small</td>
+              <td>Unigram + SentencePiece</td>
+              <td>
+                <code>▁</code> отмечает границу или начало слова
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="result">
+          Русский пример про беспроводные наушники Qwen разбил
+          на <strong>34 токена</strong>.
+
+          Внутренние токены выглядели странно, но
+          <code>decode(input_ids)</code> полностью восстановил
+          исходную строку.
+        </div>
+
+        <div class="note">
+          <strong>Источник истины — decode.</strong>
+          <code>convert_ids_to_tokens()</code> показывает внутреннее
+          устройство словаря и не обязан выдавать красивые
+          человекочитаемые кусочки.
+        </div>
+
+        <details>
+          <summary>Зачем отдельно обрабатывать специальные токены</summary>
+
+          <div>
+            <p>
+              <code>&lt;|user|&gt;</code>,
+              <code>&lt;|assistant|&gt;</code>,
+              <code>&lt;|end|&gt;</code>
+              несут структуру диалога.
+            </p>
+
+            <p>
+              Их сначала выделяют и сохраняют целиком,
+              а обычный текст токенизируют отдельно.
+              Посимвольное разбиение в учебном примере было
+              лишь визуальной заглушкой настоящего BPE.
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Почему BPE нельзя подставить вместо BoC одной строкой</summary>
+
+          <div>
+            <p>
+              BoC выдаёт фиксированный вектор
+              <code>[batch, 152]</code>.
+              BPE выдаёт последовательность переменной длины
+              <code>[batch, seq_len]</code>.
+            </p>
+
+            <div class="flow">
+              <span>token IDs</span>
+              <b>→</b>
+              <span>Embedding</span>
+              <b>→</b>
+              <span>padding и mask</span>
+              <b>→</b>
+              <span>pooling</span>
+              <b>→</b>
+              <span>classifier</span>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section id="tfidf">
+        <div class="kicker">Шаг 4 · текущий главный блок</div>
+
+        <h2>TF-IDF, cosine, обратный индекс и BM25</h2>
+
+        <p>
+          Практика началась с корпуса из трёх документов:
+          <code>lower() + split()</code>,
+          отсортированный словарь и ручная матрица
+          «документы × термины».
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Величина</th>
+              <th>Формула</th>
+              <th>Смысл</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>TF</td>
+              <td>
+                <code>count</code>,
+                <code>count / |d|</code>,
+                <code>1 + log(count)</code>
+                или binary
+              </td>
+              <td>Частота термина в документе</td>
+            </tr>
+
+            <tr>
+              <td>IDF</td>
+              <td><code>log(N / DF)</code></td>
+              <td>Редкость термина в корпусе</td>
+            </tr>
+
+            <tr>
+              <td>TF-IDF</td>
+              <td><code>TF × IDF</code></td>
+              <td>Вес термина для конкретного документа</td>
+            </tr>
+
+            <tr>
+              <td>Cosine similarity</td>
+              <td><code>(a · b) / (||a|| ||b||)</code></td>
+              <td>Сходство направлений векторов</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="result">
+          Примеры cosine:
+
+          Document 1 vs 2 → <strong>0.152</strong>;
+
+          Document 1 vs 3 → <strong>0.065</strong>.
+
+          В функции проверялись одинаковая длина векторов
+          и нулевая норма.
+        </div>
+
+        <h3>Как устроен TF-IDF-поиск</h3>
+
+        <div class="flow">
+          <span>обратный индекс</span>
+          <b>→</b>
+          <span>документы-кандидаты</span>
+          <b>→</b>
+          <span>TF-IDF запроса</span>
+          <b>→</b>
+          <span>cosine</span>
+          <b>→</b>
+          <span>сортировка</span>
+        </div>
+
+        <div class="note">
+          <strong>Обратный индекс и ранжирование не конкурируют.</strong>
+          Индекс быстро отвечает, в каких документах встречаются
+          термины. TF-IDF или BM25 определяет, какие из этих
+          документов нужно показать выше.
+        </div>
+
+        <h3>BM25</h3>
+
+        <p>
+          BM25 не строит TF-IDF-векторы и не считает cosine.
+          Он суммирует вклад терминов запроса с учётом:
+        </p>
+
+        <ul>
+          <li>редкости термина;</li>
+          <li>частоты в документе;</li>
+          <li>насыщения TF;</li>
+          <li>длины документа.</li>
+        </ul>
+
+        <pre><code>IDF(t) =
+log(1 + (N - DF(t) + 0.5) / (DF(t) + 0.5))
+
+
+score(q, d) =
+Σ IDF(t) ·
+  f(t,d) · (k1 + 1)
+  ─────────────────────────────────
+  f(t,d) + k1 · (1 - b + b·|d|/avgdl)</code></pre>
+
+        <div class="result">
+          Для учебного запроса «кот диване»
+          BM25 scores документов составили:
+
+          <strong>0.482, 0.656, 1.286, 0.0</strong>.
+        </div>
+
+        <div class="warning">
+          <strong>Нюанс нормализации длины:</strong>
+          если просто поделить весь TF-IDF-вектор документа
+          на его длину, cosine similarity не изменится.
+
+          Масштаб сократится одновременно в числителе
+          и знаменателе. BM25 учитывает длину документа
+          внутри своей формулы.
+        </div>
+
+        <h3>Как будем измерять качество поиска</h3>
+
+        <p>
+          Сначала создаём маленькую ручную разметку релевантности:
+        </p>
+
+        <pre><code>qrels = {
+    "беспроводные наушники": {2, 5, 8},
+    "телефон до 30000": {1, 4},
+}</code></pre>
+
+        <p>
+          После этого считаем
+          <code>Precision@k</code>,
+          <code>Recall@k</code>,
+          <code>NDCG@k</code>,
+          а затем <code>MRR</code> и <code>MAP</code>.
+        </p>
+
+        <p>
+          TF-IDF, BM25 и vector search нужно сравнивать
+          на одной и той же разметке.
+        </p>
+      </section>
+
+      <section id="punctuation">
+        <div class="kicker">Шаг 5 · боковая ветка закрыта</div>
+
+        <h2>Восстановление пунктуации после ASR</h2>
+
+        <p>
+          Это отдельная прикладная ветка NLP:
+          полезная, но не обязательная для понимания поиска.
+        </p>
+
+        <div class="flow">
+          <span>RAW ASR</span>
+          <b>→</b>
+          <span>model.punctuate()</span>
+          <b>→</b>
+          <span>capitalization fix</span>
+          <b>→</b>
+          <span>FIXED</span>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>RAW</th>
+              <th>MODEL / FIXED</th>
+              <th>Вывод</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>казнить нельзя помиловать</td>
+              <td>Казнить нельзя помиловать.</td>
+              <td>
+                Неоднозначность без контекста или аудио
+                разрешить нельзя
+              </td>
+            </tr>
+
+            <tr>
+              <td>вчера анна встретила марину в тбилиси</td>
+              <td>
+                Вчера Анна встретила Марину в Тбилиси.
+              </td>
+              <td>Имена и география распознаны</td>
+            </tr>
+
+            <tr>
+              <td>мы используем openai api и pytorch</td>
+              <td>Мы используем Openai API и PYTORCH.</td>
+              <td>Фирменный регистр восстановлен неправильно</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ul>
+          <li>
+            Модель хорошо ставит базовые знаки препинания
+            и оформляет диалог.
+          </li>
+
+          <li>
+            Ошибки <code>абсудим</code> и
+            <code>эксперемента</code> не исправлены:
+            это не орфографический корректор.
+          </li>
+
+          <li>
+            <code>fix_sentence_capitalization()</code> —
+            страховочная постобработка строчной буквы после точки.
+          </li>
+
+          <li>
+            Для терминов нужен словарь канонических форм.
+          </li>
+        </ul>
+
+        <pre><code>CANONICAL_TERMS = {
+    "openai": "OpenAI",
+    "pytorch": "PyTorch",
+    "api": "API",
+}</code></pre>
+      </section>
+
+      <section id="roadmap">
+        <div class="kicker">Маршрут продолжения</div>
+
+        <h2>Что заботать дальше — без перегруза</h2>
+
+        <h3>Главная ветка: поиск</h3>
+
+        <ul class="checklist">
+          <li>
+            <input type="checkbox" data-key="search-1">
+
+            <span>
+              Закончить end-to-end TF-IDF:
+              запрос → вектор → cosine → ranking.
+            </span>
+          </li>
+
+          <li>
+            <input type="checkbox" data-key="search-2">
+
+            <span>
+              Написать обратный индекс:
+              term → документы и частоты.
+            </span>
+          </li>
+
+          <li>
+            <input type="checkbox" data-key="search-3">
+
+            <span>
+              Реализовать полноценный BM25:
+              кандидаты → score → сортировка.
+            </span>
+          </li>
+
+          <li>
+            <input type="checkbox" data-key="search-4">
+
+            <span>
+              Собрать ручную разметку релевантности.
+            </span>
+          </li>
+
+          <li>
+            <input type="checkbox" data-key="search-5">
+
+            <span>
+              Посчитать P@k, R@k, NDCG, MRR и MAP.
+            </span>
+          </li>
+
+          <li>
+            <input type="checkbox" data-key="search-6">
+
+            <span>
+              Сравнить TF-IDF, BM25 и vector search.
+            </span>
+          </li>
+
+          <li>
+            <input type="checkbox" data-key="search-7">
+
+            <span>
+              Только после этого перейти к RAG:
+              retrieval → context → generation.
+            </span>
+          </li>
+        </ul>
+
+        <h3>Ветка классификации</h3>
+
+        <ol>
+          <li>
+            Добавить character n-grams,
+            чтобы вернуть локальный порядок символов.
+          </li>
+
+          <li>
+            Построить BPE + Embedding + mask +
+            pooling + classifier.
+          </li>
+
+          <li>
+            Сравнить результат с finetuning
+            multilingual pretrained transformer.
+          </li>
+        </ol>
+
+        <h3>Статус ноутбуков</h3>
+
+        <table>
+          <tbody>
+            <tr>
+              <td><code>classification_training</code> на BoC</td>
+              <td><span class="tag">закрыт</span></td>
+            </tr>
+
+            <tr>
+              <td><code>text_filtering_fineweb_practice</code></td>
+              <td><span class="tag">закрыт</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <code>
+                  tokenizers_bpe_wordpiece_unigram_sentencepiece
+                </code>
+              </td>
+              <td><span class="tag">закрыт</span></td>
+            </tr>
+
+            <tr>
+              <td><code>tf_idf</code></td>
+              <td><span class="tag todo">текущий главный</span></td>
+            </tr>
+
+            <tr>
+              <td><code>punctuation_restoration_asr</code></td>
+              <td><span class="tag">закрыт</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <code>classification_training</code>
+                с NLP-улучшениями
+              </td>
+              <td><span class="tag todo">дальше</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="glossary">
+        <div class="kicker">Быстро вспомнить</div>
+
+        <h2>Мини-шпаргалка</h2>
+
+        <table>
+          <tbody>
+            <tr>
+              <td><strong>Logits</strong></td>
+              <td>Сырые выходы классификатора до Softmax</td>
+            </tr>
+
+            <tr>
+              <td><strong>Bag of Characters</strong></td>
+              <td>
+                Частоты символов: быстро и компактно,
+                но порядок полностью потерян
+              </td>
+            </tr>
+
+            <tr>
+              <td><strong>Token IDs</strong></td>
+              <td>
+                Индексы элементов словаря,
+                а не готовые embeddings
+              </td>
+            </tr>
+
+            <tr>
+              <td><strong>Attention mask</strong></td>
+              <td>
+                Отделяет настоящие токены от padding
+              </td>
+            </tr>
+
+            <tr>
+              <td><strong>TF-IDF</strong></td>
+              <td>
+                Вес термина с учётом его частоты
+                и редкости в корпусе
+              </td>
+            </tr>
+
+            <tr>
+              <td><strong>Cosine similarity</strong></td>
+              <td>Сходство направлений двух векторов</td>
+            </tr>
+
+            <tr>
+              <td><strong>Обратный индекс</strong></td>
+              <td>
+                Структура term → документы;
+                быстрый генератор кандидатов
+              </td>
+            </tr>
+
+            <tr>
+              <td><strong>BM25</strong></td>
+              <td>
+                Лексический ranker с насыщением TF
+                и нормализацией длины
+              </td>
+            </tr>
+
+            <tr>
+              <td><strong>Jaccard</strong></td>
+              <td>Доля общих элементов двух множеств</td>
+            </tr>
+
+            <tr>
+              <td><strong>MinHash</strong></td>
+              <td>
+                Быстрая приближённая оценка Jaccard
+                на больших корпусах
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>
+            Одна фраза на случай полного выпадения из контекста:
+          </strong>
+
+          мы учились превращать сырые тексты в качественный корпус,
+          корпус — в числовое представление, а затем находить
+          и ранжировать релевантные документы.
+        </div>
+      </section>
+
+      <footer>
+        Карта беседы «Структурирование практики поиска».
+        Полный Markdown хранит историю, а этот HTML быстро
+        возвращает контекст.
+      </footer>
+
+    </main>
+  </div>
+
+  <script>
+    const search = document.getElementById("search");
+
+    search.addEventListener("input", () => {
+      const query = search.value.trim().toLowerCase();
+
+      document.querySelectorAll("section").forEach((section) => {
+        const matches = section.innerText
+          .toLowerCase()
+          .includes(query);
+
+        section.classList.toggle(
+          "hidden",
+          Boolean(query) && !matches
+        );
+      });
+    });
+
+    document
+      .querySelectorAll("input[data-key]")
+      .forEach((checkbox) => {
+        const storageKey = checkbox.dataset.key;
+
+        try {
+          checkbox.checked =
+            localStorage.getItem(storageKey) === "1";
+        } catch (error) {
+          // Файл продолжит работать без сохранения чекбоксов.
+        }
+
+        checkbox.addEventListener("change", () => {
+          try {
+            localStorage.setItem(
+              storageKey,
+              checkbox.checked ? "1" : "0"
+            );
+          } catch (error) {
+            // Ничего страшного: сам конспект работает дальше.
+          }
+        });
+      });
+  </script>
+</body>
+</html>

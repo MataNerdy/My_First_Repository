@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer
 
+
 def inspect_tokenizer(model_name: str, text: str) -> None:
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     inputs = tokenizer(text, return_tensors='pt')

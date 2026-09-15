@@ -1,6 +1,5 @@
 import torch
-import torch.nn as nn
-
+from torch import nn
 
 torch.set_printoptions(precision=3, sci_mode=False)
 

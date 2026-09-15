@@ -4,7 +4,6 @@ def isValid(s: str) -> bool:
             ')': '(',
             ']': '['
         }
-
     stack = []
 
     for c in s:

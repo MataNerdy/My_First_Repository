@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PyTorch — вопросы с собеседований, слайды 7–8</title>
+<style>
+:root{--bg:#0b0b0d;--card:#151519;--card2:#1d1d23;--text:#f5f5f7;--muted:#b9bac2;--accent:#ff4a2f;--line:#2b2b31;--code:#101014}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#09090b,#111116 45%,#09090b);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.58}.container{max-width:1040px;margin:0 auto;padding:48px 24px 80px}.hero{padding:38px 36px;border:1px solid var(--line);border-radius:24px;background:radial-gradient(circle at 88% 18%,rgba(255,74,47,.30),transparent 28%),linear-gradient(135deg,#141418,#0c0c0f);margin-bottom:28px}.kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:13px}h1{font-size:clamp(34px,6vw,70px);line-height:.98;margin:10px 0 18px;letter-spacing:-.045em}.hero p{max-width:760px;color:var(--muted);font-size:18px;margin:0}.section-title{display:flex;align-items:center;gap:14px;margin:36px 0 16px;font-size:26px}.section-title:before{content:"";width:34px;height:6px;border-radius:99px;background:var(--accent)}details{border:1px solid var(--line);border-radius:18px;margin:12px 0;overflow:hidden;background:var(--card)}summary{cursor:pointer;list-style:none;padding:20px 22px;display:flex;gap:16px;align-items:flex-start;font-size:18px;font-weight:700}summary::-webkit-details-marker{display:none}summary:hover{background:var(--card2)}.num{min-width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff;background:var(--accent);font-weight:800}.answer{padding:0 24px 24px 80px;color:#e6e6ea}.answer ul,.answer ol{padding-left:22px}.answer li{margin:5px 0}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;line-height:1.45;margin:14px 0}code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.95em}.formula{margin:12px 0;padding:12px 15px;border-left:3px solid var(--accent);background:#101014;border-radius:0 10px 10px 0;font-family:Georgia,serif;font-size:1.08em}.note{color:var(--muted);border-top:1px solid var(--line);padding-top:20px;margin-top:38px;font-size:14px}@media print{body{background:#fff;color:#111}.container{max-width:none;padding:20px}.hero,details{background:#fff;color:#111;border-color:#ccc}.hero p,.note{color:#444}details{break-inside:avoid}pre,.formula{background:#f6f6f6;color:#111}}
+</style>
+</head>
+<body><div class="container">
+<section class="hero"><div class="kicker">PyTorch · собеседования</div><h1>Вопросы и ответы<br>со слайдов 7–8</h1><p>Шпаргалка по линейным слоям, логистической регрессии, Dataset/DataLoader, функциям активации, нормализациям, loss-функциям, SGD, Dropout и диагностике моделей.</p></section>
+
+<h2 class="section-title">Слайд 7</h2>
+<details open><summary><span class="num">1</span><span>Сколько обучаемых параметров в линейном слое?</span></summary><div class="answer">Для <code>nn.Linear(in_features, out_features)</code> матрица весов имеет размер <code>(out_features, in_features)</code>, а bias — <code>(out_features,)</code>. Поэтому при <code>bias=True</code>:<div class="formula"><strong>N = in_features × out_features + out_features</strong></div>Например, для <code>Linear(5, 3)</code>: 5×3 + 3 = <strong>18</strong>.</div></details>
+
+<details open><summary><span class="num">2</span><span>Почему на практике редко используют аналитическое решение (формулу нормальных уравнений) для задачи линейной регрессии?</span></summary><div class="answer">Для МНК можно записать:<div class="formula">w = (X<sup>T</sup>X)<sup>−1</sup>X<sup>T</sup>y</div>Но при большом числе признаков это дорого: нужно построить и хранить <code>XᵀX</code>, а решение системы размера <code>d×d</code> дорого по времени и памяти. Кроме того, <code>XᵀX</code> может быть плохо обусловлена или вырождена. На практике для классического МНК чаще используют QR/SVD, а на больших данных — градиентные методы и mini-batch обучение.</div></details>
+
+<details open><summary><span class="num">3</span><span>Как реализовать логистическую регрессию в PyTorch?</span></summary><div class="answer">Бинарная логистическая регрессия — это один линейный слой, который выдаёт логит:<pre><code>import torch
+import torch.nn as nn
+
+class LogisticRegression(nn.Module):
+    def __init__(self, n_features):
+        super().__init__()
+        self.linear = nn.Linear(n_features, 1)
+
+    def forward(self, x):
+        return self.linear(x)
+
+model = LogisticRegression(n_features=10)
+criterion = nn.BCEWithLogitsLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+</code></pre>Обучение:<pre><code>optimizer.zero_grad()
+logits = model(x)
+loss = criterion(logits.squeeze(), y.float())
+loss.backward()
+optimizer.step()
+</code></pre>Вероятности: <code>torch.sigmoid(logits)</code>. Если используем <code>BCEWithLogitsLoss</code>, отдельный sigmoid перед loss не нужен.</div></details>
+
+<details open><summary><span class="num">4</span><span>Какие методы можно использовать для подбора весов в линейной модели и как они работают?</span></summary><div class="answer"><ul><li><strong>Аналитическое решение / МНК</strong> — сразу находим коэффициенты через решение системы.</li><li><strong>Gradient Descent</strong> — двигаем веса против градиента loss.</li><li><strong>SGD</strong> — оцениваем градиент по одному объекту.</li><li><strong>Mini-batch GD</strong> — по небольшой пачке объектов.</li><li><strong>Momentum / Adam / RMSProp</strong> — меняют способ обновления весов.</li><li><strong>Newton / L-BFGS / IRLS</strong> — методы второго порядка и квазиньютоновские методы.</li></ul><div class="formula">w<sub>t+1</sub> = w<sub>t</sub> − η ∇L(w<sub>t</sub>)</div></div></details>
+
+<details open><summary><span class="num">5</span><span>Чем градиентный спуск лучше МНК?</span></summary><div class="answer">Он не «всегда лучше». Для маленькой линейной регрессии прямое решение может быть отличным. Преимущества GD проявляются на больших данных и в моделях без аналитического решения: можно учиться mini-batch'ами, не хранить огромные матрицы, работать потоково и оптимизировать сложные нелинейные модели.</div></details>
+
+<details open><summary><span class="num">6</span><span>Сколько обучаемых параметров у Linear(512, 10)?</span></summary><div class="answer">Весов: <code>512 × 10 = 5120</code>. Bias: <code>10</code>. Итого: <strong>5130 параметров</strong>.</div></details>
+
+<details open><summary><span class="num">8</span><span>Что такое PyTorch Dataset, DataLoader, какую роль они играют, как написать свой Dataset?</span></summary><div class="answer"><strong>Dataset</strong> определяет, сколько у нас объектов и как получить объект по индексу. Обычно реализуются <code>__len__()</code> и <code>__getitem__()</code>.<pre><code>from torch.utils.data import Dataset, DataLoader
+
+class MyDataset(Dataset):
+    def __init__(self, X, y):
+        self.X = X
+        self.y = y
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx]
+</code></pre><strong>DataLoader</strong> организует batching, shuffle и загрузку данных:<pre><code>loader = DataLoader(dataset, batch_size=32, shuffle=True)
+
+for X_batch, y_batch in loader:
+    ...
+</code></pre><strong>Dataset = что читать, DataLoader = как подавать модели.</strong></div></details>
+
+<details open><summary><span class="num">9</span><span>Зачем в нейросетях используются функции активации?</span></summary><div class="answer">Чтобы добавить нелинейность. Несколько линейных слоёв подряд без активаций всё равно эквивалентны одному линейному преобразованию:<div class="formula">W₂(W₁x) = (W₂W₁)x</div>Без нелинейных активаций глубокая сеть не сможет моделировать сложные нелинейные зависимости.</div></details>
+
+<details open><summary><span class="num">10</span><span>Формулы сигмоиды и softmax, их различия и применение</span></summary><div class="answer"><strong>Sigmoid:</strong><div class="formula">σ(x) = 1 / (1 + e<sup>−x</sup>)</div>Выход каждого логита независимо лежит в (0,1). Используется в бинарной классификации и multilabel.<br><br><strong>Softmax:</strong><div class="formula">pᵢ = e<sup>zᵢ</sup> / Σⱼ e<sup>zⱼ</sup></div>Вероятности конкурируют и суммируются в 1. Используется в multiclass-классификации с взаимоисключающими классами. <strong>Главное:</strong> sigmoid — независимые вероятности; softmax — одно распределение по классам.</div></details>
+
+<h2 class="section-title">Слайд 8</h2>
+<details open><summary><span class="num">11</span><span>Что такое метод .eval() в PyTorch?</span></summary><div class="answer"><code>model.eval()</code> переводит модель в evaluation mode. Dropout перестаёт занулять активации, BatchNorm использует накопленные running statistics. Важно: <code>eval()</code> не отключает градиенты. Обычно:<pre><code>model.eval()
+with torch.no_grad():
+    pred = model(x)
+</code></pre></div></details>
+
+<details open><summary><span class="num">12</span><span>Логистическая регрессия считается линейной моделью или нет? Объясни почему.</span></summary><div class="answer">Да. Вероятность нелинейно зависит от логита:<div class="formula">p(y=1|x) = σ(w<sup>T</sup>x + b)</div>Но решающая граница при пороге 0.5 задаётся уравнением:<div class="formula">w<sup>T</sup>x + b = 0</div>Это гиперплоскость, то есть линейная decision boundary.</div></details>
+
+<details open><summary><span class="num">13</span><span>Зачем нужен BatchNorm2d?</span></summary><div class="answer">Он нормализует активации в сверточных сетях для тензоров формата <code>(N, C, H, W)</code>. Для каждого канала считаются статистики по batch и пространственным координатам:<div class="formula">x̂ = (x − μ) / √(σ² + ε), &nbsp; y = γx̂ + β</div>Это часто делает обучение стабильнее и облегчает распространение градиентов.</div></details>
+
+<details open><summary><span class="num">14</span><span>Почему BatchNorm почти не используется в NLP задачах?</span></summary><div class="answer">BatchNorm зависит от статистик batch. В NLP длины последовательностей различаются, batch может быть маленьким, а его состав — сильно меняться. Кроме того, не хочется, чтобы нормализация одного текста зависела от других текстов в batch. Поэтому в Transformers обычно используют <strong>LayerNorm</strong>.</div></details>
+
+<details open><summary><span class="num">15</span><span>Что такое Focal Loss?</span></summary><div class="answer">Это модификация cross-entropy, уменьшающая вклад легко классифицируемых объектов:<div class="formula">FL = −α(1 − p<sub>t</sub>)<sup>γ</sup> log(p<sub>t</sub>)</div>Особенно полезна при сильном дисбалансе классов и большом числе «простых» примеров.</div></details>
+
+<details open><summary><span class="num">16</span><span>Почему в функции кросс-энтропии используется логарифм?</span></summary><div class="answer">Он сильно штрафует уверенные ошибки: <code>−log(0.9) ≈ 0.105</code>, а <code>−log(0.001) ≈ 6.91</code>. Кроме того, cross-entropy связана с maximum likelihood: логарифм превращает произведение вероятностей в сумму логарифмов, что удобно для оптимизации и численно устойчивее.</div></details>
+
+<details open><summary><span class="num">17</span><span>A размера (2n × 3n) умножаем на B размера (3n × 4n). Сколько поэлементных умножений?</span></summary><div class="answer">Результат имеет <code>2n × 4n = 8n²</code> элементов. Для каждого нужно <code>3n</code> умножений. Итого:<div class="formula">8n² × 3n = <strong>24n³</strong></div></div></details>
+
+<details open><summary><span class="num">18</span><span>Найдите производную f(x) = e^(2x) · sin(x)</span></summary><div class="answer"><div class="formula">f'(x) = 2e<sup>2x</sup>sin(x) + e<sup>2x</sup>cos(x)</div>Или:<div class="formula"><strong>f'(x) = e<sup>2x</sup>(2sin(x) + cos(x))</strong></div></div></details>
+
+<details open><summary><span class="num">19</span><span>Классификатор на cross-entropy не делает очень уверенные предсказания 0.0 и 1.0. Почему?</span></summary><div class="answer">Чтобы sigmoid/softmax дали математически ровно 0 или 1, нужны логиты, стремящиеся к ±∞. При конечных весах вероятности обычно лишь приближаются к границам. На практике также влияют шум, пересечение классов, regularization, weight decay, early stopping и ограниченная ёмкость модели.</div></details>
+
+<details open><summary><span class="num">20</span><span>Найдите ошибки в коде обучения модели</span></summary><div class="answer">Сам код на слайде не приведён, поэтому конкретные ошибки по источнику определить нельзя. Типовой чек-лист:<ul><li>забыли <code>optimizer.zero_grad()</code>;</li><li>забыли <code>loss.backward()</code>;</li><li>забыли <code>optimizer.step()</code>;</li><li>делают <code>sigmoid</code> перед <code>BCEWithLogitsLoss</code>;</li><li>делают <code>softmax</code> перед <code>CrossEntropyLoss</code>;</li><li>validation идёт в <code>train()</code>;</li><li>на validation забыли <code>torch.no_grad()</code>;</li><li>неверный dtype/shape targets;</li><li>модель и данные на разных device;</li><li>accuracy считают по logits без <code>argmax</code>.</li></ul></div></details>
+
+<h2 class="section-title">Слайд 8 · второй блок</h2>
+<details open><summary><span class="num">15</span><span>Формула шага SGD; что делают loss.backward(), optimizer.step(), optimizer.zero_grad()?</span></summary><div class="answer"><div class="formula">θ<sub>t+1</sub> = θ<sub>t</sub> − η∇<sub>θ</sub>L</div><ul><li><code>loss.backward()</code> — вычисляет градиенты и записывает их в <code>.grad</code>.</li><li><code>optimizer.step()</code> — обновляет параметры.</li><li><code>optimizer.zero_grad()</code> — обнуляет старые градиенты, потому что PyTorch по умолчанию их накапливает.</li></ul></div></details>
+
+<details open><summary><span class="num">16</span><span>Что делает model.train(), model.eval(), with torch.no_grad()?</span></summary><div class="answer"><ul><li><code>model.train()</code> — training mode для Dropout/BatchNorm.</li><li><code>model.eval()</code> — evaluation mode для этих слоёв.</li><li><code>with torch.no_grad()</code> — отключает построение графа и вычисление градиентов внутри блока.</li></ul>Типичная validation-секция:<pre><code>model.eval()
+with torch.no_grad():
+    for x, y in val_loader:
+        logits = model(x)
+</code></pre></div></details>
+
+<details open><summary><span class="num">17</span><span>Чем отличается работа Dropout на трейне и на инференсе?</span></summary><div class="answer">На train Dropout случайно зануляет часть активаций с вероятностью <code>p</code> и масштабирует оставшиеся. На inference после <code>model.eval()</code> Dropout ничего не зануляет.</div></details>
+
+<details open><summary><span class="num">18</span><span>Зачем в Dropout применяется масштабирование активаций на этапе обучения?</span></summary><div class="answer">Чтобы сохранить математическое ожидание активации. Если просто занулять элементы с вероятностью <code>p</code>, средний уровень активаций уменьшится. Поэтому оставшиеся значения масштабируют на:<div class="formula">1 / (1 − p)</div>Это называется inverted dropout.</div></details>
+
+<details open><summary><span class="num">19</span><span>Что такое LayerNorm?</span></summary><div class="answer">LayerNorm нормализует признаки внутри одного объекта:<div class="formula">μ = mean(x), &nbsp; σ² = var(x)</div><div class="formula">x̂ = (x − μ) / √(σ² + ε), &nbsp; y = γx̂ + β</div>В отличие от BatchNorm, она не зависит от других объектов в batch, поэтому хорошо подходит для NLP и Transformers.</div></details>
+
+<details open><summary><span class="num">20</span><span>Кейс: классификатор упёрся в точность 82%. Предложите 10 экспериментов для повышения точности.</span></summary><div class="answer"><ol><li>Проверить ошибки разметки, дубликаты и data leakage.</li><li>Сравнить train и validation accuracy: underfitting или overfitting?</li><li>Посмотреть confusion matrix и метрики по классам.</li><li>Провести error analysis.</li><li>Попробовать data augmentation.</li><li>Подобрать learning rate.</li><li>Попробовать другой optimizer и scheduler.</li><li>Изменить capacity/архитектуру или взять pretrained backbone.</li><li>Настроить regularization: dropout, weight decay, early stopping.</li><li>Разобраться с class imbalance: class weights, sampling, Focal Loss.</li></ol>Сильная формулировка на собеседовании: сначала определить, проблема в bias, variance или качестве данных.</div></details>
+
+<details open><summary><span class="num">21</span><span>100 идентичных текстов: у 99 метка 0, у одного метка 1. Что произойдёт с обучением?</span></summary><div class="answer">Поскольку входы одинаковые, модель не может отличить объект с меткой 1 от остальных. При обычной cross-entropy оптимальное предсказание примерно отражает частоты классов:<div class="formula">P(y=0|x) ≈ 0.99, &nbsp; P(y=1|x) ≈ 0.01</div>При argmax модель предскажет 0 для всех 100 объектов и получит accuracy ≈ 99%, но recall по классу 1 будет 0. Это хороший пример того, почему accuracy опасна при сильном дисбалансе.</div></details>
+
+<div class="note">В исходном PDF нумерация на слайде 8 частично повторяется; здесь она сохранена, а повторяющийся блок отмечен как «Слайд 8 · второй блок». Для вопроса «Найдите ошибки в коде обучения модели» сам код на слайде отсутствует, поэтому приведён типовой чек-лист.</div>
+</div></body></html>

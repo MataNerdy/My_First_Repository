@@ -1,7 +1,6 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-
+from torch import nn
 
 torch.manual_seed(42)
 torch.set_printoptions(precision=3, sci_mode=False)

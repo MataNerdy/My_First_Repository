@@ -1,10 +1,9 @@
 import math
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
-
+import torch
+import torch.nn.functional as F
+from torch import nn
 
 torch.manual_seed(42)
 

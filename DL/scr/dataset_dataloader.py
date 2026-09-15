@@ -1,8 +1,9 @@
-import torch
-import torchvision
-from torch.utils.data import Dataset, DataLoader
-import numpy as np
 import math
+
+import numpy as np
+import torch
+from torch.utils.data import DataLoader, Dataset
+
 
 class WineDataset(Dataset):
     def __init__(self):
