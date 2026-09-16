@@ -225,6 +225,87 @@ def main() -> None:
         "Обратный индекс без ранжирования": lambda query, limit: inverse_index_search(inverted_index, query, limit),
         "Elasticsearch BM25": lambda query, limit: elasticsearch_bm25_search(client, query, limit),
     }
+
+    test_item = validation_set[0]
+    test_query = test_item["query"]
+    relevant_ids = test_item["relevant_ids"]
+
+    print("\nТестовый запрос:", test_query)
+    print("Известные Exact-товары:", relevant_ids)
+
+    for name, search in algorithms.items():
+        results = search(test_query, 10)
+
+        print(f"\n{name}:")
+        for rank, product_id in enumerate(results, start=1):
+            label = "Exact" if product_id in relevant_ids else "—"
+            print(rank, product_id, label)
+
+    debug_response = client.search(
+        index=INDEX_NAME,
+        size=10,
+        source=["title"],
+        query={
+            "multi_match": {
+                "query": test_query,
+                "fields": ["title^3", "description"],
+                "type": "best_fields",
+            }
+        },
+    )
+
+    print("\nПодробная выдача BM25:")
+
+    for rank, hit in enumerate(
+        debug_response["hits"]["hits"],
+        start=1,
+    ):
+        print(
+            rank,
+            f"score={hit['_score']:.3f}",
+            hit["_id"],
+            hit["_source"]["title"],
+        )
+
+    analysis = client.indices.analyze(
+        index=INDEX_NAME,
+        field="title",
+        text=test_query,
+    )
+
+    tokens = [
+        token_info["token"]
+        for token_info in analysis["tokens"]
+    ]
+
+    print("\nТокены запроса:", tokens)
+
+    for operator in ["or", "and"]:
+        response = client.search(
+            index=INDEX_NAME,
+            size=5,
+            source=["title"],
+            query={
+                "multi_match": {
+                    "query": "80 cfm",
+                    "fields": ["title^3", "description"],
+                    "type": "best_fields",
+                    "operator": operator,
+                }
+            },
+        )
+
+        print(f"\nОператор: {operator.upper()}")
+
+        for rank, hit in enumerate(
+            response["hits"]["hits"],
+            start=1,
+        ):
+            print(
+                rank,
+                f"score={hit['_score']:.3f}",
+                hit["_source"]["title"],
+            )
     table = pd.DataFrame(
         [{"Алгоритм": name, **evaluate_search(search, validation_set, catalog_ids)} for name, search in algorithms.items()]
     ).set_index("Алгоритм")
