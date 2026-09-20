@@ -39,7 +39,6 @@ def compute_tf(words, vocabulary):
 def compute_df(texts, vocabulary):
     if texts and isinstance(texts[0], str):
         texts = [t.split() for t in texts]
-        print(texts)
     df = []
     for v in vocabulary:
         count = 0
@@ -65,4 +64,4 @@ idfs = compute_idf(text_words, vocabulary)
 idfs = torch.tensor(idfs)
 print(idfs.shape)
 
-print(tfs * idfs)
+tf_idf = tfs * idfs
