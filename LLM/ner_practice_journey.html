@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>NER: от BIO до двух обученных моделей</title>
+  <style>
+    :root { --bg:#0b111c; --panel:#121c2b; --panel2:#182639; --line:#294052; --text:#eef4f5; --muted:#a8bac4; --mint:#80e4c3; --sky:#85c6ee; --gold:#f6ca87; --pink:#e6a5be; --red:#ef9998; --max:1120px; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:radial-gradient(circle at 12% 1%, #183b44 0, transparent 28rem),radial-gradient(circle at 95% 10%, #2e263e 0, transparent 34rem),var(--bg); color:var(--text); font:16px/1.65 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    a { color:var(--mint); text-underline-offset:.17em; }
+    button { font:inherit; }
+    .wrap { width:min(var(--max),calc(100% - 40px)); margin:auto; }
+    .topbar { position:sticky; top:0; z-index:10; backdrop-filter:blur(14px); background:#0b111cde; border-bottom:1px solid #34506480; }
+    .topbar .wrap { display:flex; gap:18px; align-items:center; min-height:58px; }
+    .brand { font-size:.82rem; font-weight:850; letter-spacing:.15em; color:var(--mint); white-space:nowrap; }
+    nav { display:flex; overflow:auto; gap:18px; scrollbar-width:none; }
+    nav a { color:var(--muted); text-decoration:none; font-size:.85rem; white-space:nowrap; }
+    nav a:hover,nav a:focus { color:var(--text); }
+    header.hero { padding:76px 0 48px; }
+    .eyebrow { color:var(--mint); font-size:.78rem; letter-spacing:.17em; font-weight:800; text-transform:uppercase; }
+    h1 { font-size:clamp(2.6rem,7vw,5.4rem); letter-spacing:-.06em; line-height:1.05; margin:15px 0 20px; max-width:940px; }
+    h1 em { font-style:normal; color:var(--mint); }
+    .lead { color:#d3e2e8; font-size:clamp(1.1rem,2vw,1.35rem); max-width:790px; margin:0 0 30px; }
+    .hero-card { display:flex; flex-wrap:wrap; gap:12px; }
+    .hero-pill { border:1px solid var(--line); background:#142332ad; border-radius:12px; padding:10px 14px; font-size:.88rem; color:#d4e3e7; }
+    .hero-pill strong { color:var(--mint); }
+    main section { padding:60px 0; border-top:1px solid #2940528a; scroll-margin-top:67px; }
+    .section-head { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; align-items:end; margin-bottom:22px; }
+    .step { font-size:.8rem; color:var(--mint); font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+    h2 { font-size:clamp(1.8rem,3.4vw,2.8rem); letter-spacing:-.04em; line-height:1.15; margin:8px 0 0; }
+    h3 { margin:0 0 10px; font-size:1.13rem; }
+    p { margin:0 0 15px; }
+    .muted { color:var(--muted); }
+    .small { font-size:.87rem; }
+    .grid { display:grid; gap:16px; }
+    .grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .card { background:linear-gradient(145deg,#182638,#111d2c); border:1px solid var(--line); border-radius:18px; padding:23px; box-shadow:0 12px 38px #00000019; min-width:0; }
+    .card .num { display:block; color:var(--mint); font-weight:850; font-size:1.35rem; margin-bottom:5px; }
+    .highlight { background:linear-gradient(120deg,#163d40,#172d3e 65%,#29233a); border-color:#48837f; }
+    .callout { border-left:3px solid var(--mint); background:#13282c; border-radius:0 13px 13px 0; padding:16px 19px; margin:20px 0; }
+    .callout.gold { border-color:var(--gold); background:#2d281f; }
+    .callout.pink { border-color:var(--pink); background:#302430; }
+    .pipeline { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; margin:26px 0 8px; }
+    .pipeline span { border:1px solid #44746d; border-radius:11px; background:#17322f; padding:11px 10px; text-align:center; font-size:.82rem; line-height:1.25; font-weight:700; }
+    .pipeline span:not(:last-child)::after { content:'→'; float:right; margin-right:-19px; color:var(--mint); }
+    table { width:100%; border-collapse:collapse; font-size:.91rem; }
+    th,td { text-align:left; padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:var(--muted); font-size:.77rem; text-transform:uppercase; letter-spacing:.075em; font-weight:700; }
+    tr:last-child td { border-bottom:0; }
+    .scroll { overflow-x:auto; }
+    .tag { display:inline-flex; align-items:center; justify-content:center; border-radius:8px; padding:2px 7px; font:700 .78rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:nowrap; }
+    .tag.org { color:#b1dafa; background:#25445b; }
+    .tag.per { color:#ffd2e3; background:#54304c; }
+    .tag.loc { color:#aaf2d5; background:#235144; }
+    .tag.misc { color:#ffe0a6; background:#51422b; }
+    .tag.o { color:#c4cbd6; background:#344152; }
+    .tag.ignored { color:#f0b0ac; background:#573333; }
+    .tag.sys { color:#b8c9d1; background:#354252; }
+    .token-bar { display:flex; flex-wrap:wrap; gap:8px; margin:17px 0; }
+    .token { display:flex; flex-direction:column; align-items:center; min-width:73px; gap:5px; border:1px solid var(--line); border-radius:12px; background:#182a3a; padding:8px 7px; }
+    .token.split { border-color:#c29654; }
+    .token b { font:700 .85rem ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .token small { color:var(--muted); font-size:.69rem; }
+    .switches { display:flex; flex-wrap:wrap; gap:7px; margin:14px 0; }
+    .switches button { cursor:pointer; color:var(--muted); border:1px solid var(--line); background:#1b2939; padding:8px 13px; border-radius:9px; font-size:.88rem; }
+    .switches button.active { background:#295248; color:#ecfff5; border-color:#77cfab; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+    pre { overflow:auto; background:#091421; border:1px solid #2a3b4f; border-radius:13px; padding:18px; color:#d7eae9; font-size:.81rem; line-height:1.56; tab-size:4; margin:12px 0; }
+    details { background:#111f2f; border:1px solid var(--line); border-radius:13px; margin:10px 0; }
+    summary { cursor:pointer; padding:14px 17px; font-weight:700; }
+    details > :not(summary) { margin-left:16px; margin-right:16px; }
+    .metric-demo { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; }
+    .control { display:grid; grid-template-columns:140px 1fr 39px; align-items:center; gap:11px; margin:11px 0; }
+    .control label { color:var(--muted); font-size:.88rem; }
+    .control output { font-weight:800; text-align:right; }
+    input[type=range] { width:100%; accent-color:#82e0c2; }
+    .metric-result { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; align-content:center; }
+    .metric-result div { background:#183134; border:1px solid #3e756c; border-radius:12px; text-align:center; padding:16px 6px; }
+    .metric-result strong { display:block; color:var(--mint); font-size:1.65rem; letter-spacing:-.04em; }
+    .metric-result small { color:var(--muted); }
+    .stat { font-size:2.3rem; font-weight:850; letter-spacing:-.05em; line-height:1.1; }
+    .stat.mint { color:var(--mint); }.stat.sky { color:var(--sky); }
+    .bars { margin:23px 0; }
+    .bar-row { display:grid; grid-template-columns:145px 1fr 65px; gap:10px; align-items:center; margin:12px 0; font-size:.9rem; }
+    .track { background:#26374a; height:12px; border-radius:12px; overflow:hidden; }
+    .fill { height:100%; background:linear-gradient(90deg,#5cb9a7,#a5f1d0); border-radius:12px; }
+    .fill.sky { background:linear-gradient(90deg,#538aca,#a7d7fa); }
+    .result-table td:nth-child(n+2),.result-table th:nth-child(n+2) { text-align:right; font-variant-numeric:tabular-nums; }
+    .chip-list { display:flex; flex-wrap:wrap; gap:8px; }
+    .chip { padding:7px 10px; border-radius:9px; background:#23384a; font-size:.82rem; }
+    .footer { padding:40px 0 65px; color:var(--muted); font-size:.85rem; border-top:1px solid var(--line); }
+    @media(max-width:800px) { .grid.two,.grid.three,.metric-demo { grid-template-columns:1fr; } .pipeline { grid-template-columns:repeat(3,1fr); } .pipeline span::after { display:none; } .section-head { display:block; } }
+    @media(max-width:520px) { .wrap { width:min(var(--max),calc(100% - 25px)); } header.hero { padding-top:52px; } main section { padding:45px 0; } .card { padding:17px; } .pipeline { grid-template-columns:repeat(2,1fr); } .control { grid-template-columns:92px 1fr 27px; } .bar-row { grid-template-columns:95px 1fr 45px; } .metric-result strong { font-size:1.3rem; } }
+    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+    @media print { .topbar,.switches,.metric-demo input { display:none; } body { background:white; color:#12202e; } .card,.callout,details,pre { break-inside:avoid; background:white; color:#12202e; } main section { padding:25px 0; } a { color:#17614f; } }
+  </style>
+</head>
+<body>
+  <div class="topbar"><div class="wrap"><span class="brand">NER LAB / 2026</span><nav aria-label="Разделы"><a href="#goal">Задача</a><a href="#data">Данные</a><a href="#alignment">Выравнивание</a><a href="#batches">Батчи</a><a href="#metrics">Метрики</a><a href="#training">Обучение</a><a href="#results">Результаты</a><a href="#hub">Hub</a></nav></div></div>
+  <header class="hero wrap">
+    <div class="eyebrow">Практикум Hugging Face · CoNLL-2003 · BERT</div>
+    <h1>Как мы научили BERT<br><em>находить сущности</em></h1>
+    <p class="lead">Весь путь нашей NER-практики: от девяти BIO-меток и путаницы с <code>word_ids()</code> до двух обученных моделей, test F1 и проверки модели, загруженной с Hub.</p>
+    <div class="hero-card"><span class="hero-pill"><strong>14 041</strong> обучающих предложений</span><span class="hero-pill"><strong>9</strong> меток</span><span class="hero-pill"><strong>2</strong> способа обучения</span><span class="hero-pill"><strong>0.9142</strong> лучший test F1</span></div>
+  </header>
+
+  <main class="wrap">
+    <section id="goal">
+      <div class="section-head"><div><div class="step">01 / Зачем</div><h2>Что мы хотели получить</h2></div></div>
+      <p>Модель получает предложение и выделяет в нём <strong>именованные сущности</strong>: людей, организации, места и прочие категории, предусмотренные разметкой CoNLL-2003.</p>
+      <div class="grid two">
+        <div class="card highlight"><h3>Вход</h3><p>«Alice Johnson joined Microsoft in London.»</p><p class="muted small">Обычный английский текст, без заранее расставленных границ.</p></div>
+        <div class="card"><h3>Выход</h3><div class="chip-list"><span class="chip"><span class="tag per">PER</span> Alice Johnson</span><span class="chip"><span class="tag org">ORG</span> Microsoft</span><span class="chip"><span class="tag loc">LOC</span> London</span></div><p class="muted small" style="margin-top:13px">Это реальные группы сущностей, найденные вручную обученной моделью после загрузки с Hub.</p></div>
+      </div>
+      <div class="pipeline" aria-label="Этапы практики"><span>Слова и BIO</span><span>Токенизация</span><span>Выравнивание</span><span>Батчи</span><span>Обучение</span><span>Оценка и Hub</span></div>
+      <p class="muted small">Использовали <code>bert-base-cased</code>: предобученный BERT получил новую классификационную голову для NER. Мы обучали модель для английской разметки CoNLL, поэтому результаты не следует переносить без проверки на русскоязычные тексты.</p>
+    </section>
+
+    <section id="data">
+      <div class="section-head"><div><div class="step">02 / Датасет</div><h2>Одно слово — одна исходная метка</h2></div></div>
+      <div class="grid three">
+        <div class="card"><span class="num">14 041</span><b>train</b><p class="muted small">Примеры, по которым обновляются веса.</p></div>
+        <div class="card"><span class="num">3 250</span><b>validation</b><p class="muted small">Контроль качества после каждой эпохи.</p></div>
+        <div class="card"><span class="num">3 453</span><b>test</b><p class="muted small">Финальная независимая проверка.</p></div>
+      </div>
+      <p style="margin-top:20px">В первой строке: <code>tokens = ['EU', 'rejects', 'German', …]</code>, <code>ner_tags = [3, 0, 7, …]</code>. Колонки <code>pos_tags</code> и <code>chunk_tags</code> относятся к другим задачам, а <code>document_id</code> и <code>sentence_id</code> помогают определить место предложения в исходных документах.</p>
+      <div class="scroll card"><table><thead><tr><th>ID</th><th>Метка</th><th>Значение</th><th>Пример</th></tr></thead><tbody>
+        <tr><td>0</td><td><span class="tag o">O</span></td><td>Вне сущности</td><td>rejects, lamb</td></tr>
+        <tr><td>1 / 2</td><td><span class="tag per">B-PER / I-PER</span></td><td>Начало / продолжение имени человека</td><td>Werner / Zwingmann</td></tr>
+        <tr><td>3 / 4</td><td><span class="tag org">B-ORG / I-ORG</span></td><td>Начало / продолжение организации</td><td>European / Union</td></tr>
+        <tr><td>5 / 6</td><td><span class="tag loc">B-LOC / I-LOC</span></td><td>Начало / продолжение места</td><td>Germany</td></tr>
+        <tr><td>7 / 8</td><td><span class="tag misc">B-MISC / I-MISC</span></td><td>Прочая размеченная сущность</td><td>German, British</td></tr>
+      </tbody></table></div>
+      <div class="callout"><strong>B</strong> означает начало сущности, <strong>I</strong> — её продолжение, <strong>O</strong> — отсутствие сущности. В этой задаче 4 типа × 2 позиции + O = <strong>9 классов</strong>. Отдельных классов DATE или MONEY здесь нет.</div>
+      <details><summary>Код: загрузка и чтение меток</summary><pre><code>from datasets import load_dataset
+raw_dataset = load_dataset("tomaarsen/conll2003")
+label_names = raw_dataset["train"].features["ner_tags"].feature.names
+
+example = raw_dataset["train"][0]
+for word, tag_id in zip(example["tokens"], example["ner_tags"]):
+    print(word, label_names[tag_id])</code></pre><p class="small muted">Мы использовали копию CoNLL-2003 без старого загрузочного скрипта; краткое имя <code>conll2003</code> из курса может не загрузиться в новых версиях <code>datasets</code>.</p></details>
+    </section>
+
+    <section id="alignment">
+      <div class="section-head"><div><div class="step">03 / Главная хитрость</div><h2>9 слов превратились в 12 токенов</h2></div></div>
+      <p>У первого предложения 9 меток, но токенизатор BERT добавляет <code>[CLS]</code> и <code>[SEP]</code>, а слово <code>lamb</code> дробит на <code>la</code> и <code>##mb</code>. Получается 12 позиций. <code>word_ids()</code> говорит, из какого исходного слова вышел каждый токен; служебные токены получают <code>None</code>.</p>
+      <div class="card">
+        <h3>Переключи способ разметки подтокенов</h3>
+        <p class="muted small">Ниже показан один и тот же вход; меняется только то, получает ли <code>##mb</code> собственную метку для loss.</p>
+        <div class="switches" role="group" aria-label="Стратегия разметки"><button id="mode-all" type="button" class="active" aria-pressed="true">Метка каждому подтокену</button><button id="mode-first" type="button" aria-pressed="false">Только первому подтокену</button></div>
+        <div class="token-bar" id="alignment-tokens" aria-live="polite"></div>
+        <p class="small muted" id="alignment-explainer"></p>
+      </div>
+      <div class="callout gold"><code>-100</code> означает «эту позицию не учитывать в функции потерь». Его получают служебные токены, padding и — в выбранном нами варианте — дополнительные части слова. У <code>la</code> стоит <code>O</code>, у <code>##mb</code> — <code>-100</code>, после них точка опять получает <code>O</code>.</div>
+      <p><strong>Почему две стратегии?</strong> Если метить каждую часть, у продолжения сущности <code>B-ORG</code> превращается в <code>I-ORG</code>. Если размечать только первый подтокен, длинное слово не начинает влиять на loss сильнее короткого. В нашем обучении использован <strong>второй способ</strong>.</p>
+      <details><summary>Код: наша функция выравнивания</summary><pre><code>def align_first_subtoken_only(labels, word_ids):
+    aligned = []
+    previous_word_id = None
+    for word_id in word_ids:
+        if word_id is None:
+            aligned.append(-100)
+        elif word_id != previous_word_id:
+            previous_word_id = word_id
+            aligned.append(labels[word_id])
+        else:
+            aligned.append(-100)
+    return aligned
+
+def tokenize_and_align_labels(examples):
+    tokenized = tokenizer(
+        examples["tokens"], truncation=True, is_split_into_words=True
+    )
+    tokenized["labels"] = [
+        align_first_subtoken_only(tags, tokenized.word_ids(i))
+        for i, tags in enumerate(examples["ner_tags"])
+    ]
+    return tokenized
+
+tokenized_dataset = raw_dataset.map(
+    tokenize_and_align_labels,
+    batched=True,
+    remove_columns=raw_dataset["train"].column_names,
+)</code></pre></details>
+      <div class="grid two"><div class="card"><h3><code>tokenized["labels"]</code> по-человечески</h3><p>Токенизатор создаёт <code>input_ids</code> и маску, но не знает правильных NER-ответов. Мы проходим по каждому предложению батча, через <code>word_ids(i)</code> связываем токены со словами и добавляем выровненный список правильных ответов в колонку <code>labels</code>.</p></div><div class="card"><h3>Два уровня индексов</h3><p><code>i</code> — номер предложения в текущем батче. <code>word_id</code> — номер слова внутри этого предложения. Поэтому для батчевой токенизации вызываем <code>tokenized.word_ids(i)</code>, а не один общий <code>word_ids()</code>.</p></div></div>
+    </section>
+
+    <section id="batches">
+      <div class="section-head"><div><div class="step">04 / Батчи</div><h2>Одинаковая форма, разное содержание</h2></div></div>
+      <p><code>DataCollatorForTokenClassification</code> дополняет короткие последовательности внутри батча. В нашей проверке два предложения дали <code>input_ids.shape = labels.shape = [2, 12]</code>.</p>
+      <div class="scroll card"><table><thead><tr><th>Позиции второго предложения</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4…11</th></tr></thead><tbody><tr><td>Содержимое</td><td>[CLS]</td><td>Peter</td><td>Blackburn</td><td>[SEP]</td><td>padding</td></tr><tr><td>attention_mask</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>labels</td><td>−100</td><td>1</td><td>2</td><td>−100</td><td>−100</td></tr></tbody></table></div>
+      <div class="callout"><strong>Маска</strong> отвечает: «Это настоящий токен или padding?» <strong>Метка −100</strong> отвечает: «Учитывать эту позицию в loss?» Служебный <code>[CLS]</code> настоящий для модели (маска 1), но не имеет NER-метки (−100).</div>
+      <details><summary>Код: сборка батча</summary><pre><code>from transformers import DataCollatorForTokenClassification
+data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
+batch = data_collator([tokenized_dataset["train"][i] for i in range(2)])
+print(batch["input_ids"].shape, batch["labels"].shape)</code></pre></details>
+    </section>
+
+    <section id="metrics">
+      <div class="section-head"><div><div class="step">05 / Оценка</div><h2>Считаем сущности, а не только метки</h2></div></div>
+      <p>Для первого предложения мы специально заменили метку <code>German</code> с <code>B-MISC</code> на <code>O</code>. Было 3 сущности (<code>EU</code>, <code>German</code>, <code>British</code>), нашли 2, обе верно. Значит: precision = 1, recall = 2/3, F1 = 0.8; доля правильно размеченных отдельных слов = 8/9.</p>
+      <div class="card metric-demo"><div><h3>Поиграй с числом находок</h3><div class="control"><label for="tp">Верные находки</label><input id="tp" type="range" min="0" max="10" value="2"><output id="tp-val">2</output></div><div class="control"><label for="fp">Лишние находки</label><input id="fp" type="range" min="0" max="10" value="0"><output id="fp-val">0</output></div><div class="control"><label for="fn">Пропуски</label><input id="fn" type="range" min="0" max="10" value="1"><output id="fn-val">1</output></div><p class="small muted">Если знаменатель равен нулю, в этой демонстрации соответствующая метрика показывается как 0.</p></div><div class="metric-result" aria-live="polite"><div><small>Precision<br>TP/(TP+FP)</small><strong id="precision">1.000</strong></div><div><small>Recall<br>TP/(TP+FN)</small><strong id="recall">0.667</strong></div><div><small>F1<br>2PR/(P+R)</small><strong id="f1">0.800</strong></div></div></div>
+      <p class="muted small" style="margin-top:17px">Для NER мы применяли <code>seqeval</code>: она оценивает найденные фрагменты с учётом BIO-разметки. Высокая accuracy сама по себе менее показательна, потому что большинство токенов может иметь метку O.</p>
+      <div class="grid two"><div class="card"><h3>Что такое <code>labels</code> в коде</h3><p>Массив формы <code>[батч, длина]</code> с <strong>числовыми правильными метками</strong>. «Предложение» в list comprehension — одна строка этого массива, а не строка текста.</p></div><div class="card"><h3>Зачем <code>zip(preds, gold)</code></h3><p>Мы идём по позициям парами. Если <em>правильная</em> метка равна −100, эту позицию выкидываем и из ответа, и из прогноза; иначе переводим оба ID в текстовые названия.</p></div></div>
+      <details><summary>Код: подготовка к seqeval</summary><pre><code>predicted_ids = logits.argmax(axis=-1)
+
+true_labels = [
+    [label_names[tag] for tag in gold_ids if tag != -100]
+    for gold_ids in labels
+]
+true_predictions = [
+    [label_names[pred]
+     for pred, gold_tag in zip(pred_ids, gold_ids)
+     if gold_tag != -100]
+    for pred_ids, gold_ids in zip(predicted_ids, labels)
+]
+scores = metric.compute(
+    predictions=true_predictions,
+    references=true_labels,
+)</code></pre></details>
+    </section>
+
+    <section id="training">
+      <div class="section-head"><div><div class="step">06 / Два способа</div><h2>Один BERT, два цикла обучения</h2></div></div>
+      <p>В обоих экспериментах: <code>bert-base-cased</code>, 9 классов, 3 эпохи, батч 8, learning rate 2×10<sup>−5</sup>, T4 GPU. Это <strong>1756 батчей за эпоху и 5268 шагов</strong> за три эпохи. Для второго эксперимента <strong>создали новую модель из базового checkpoint</strong>, чтобы не продолжать обучение первой.</p>
+      <div class="grid two">
+        <div class="card"><span class="num">A / Trainer</span><h3>Готовый цикл</h3><p>Передали модель, данные, collator и <code>compute_metrics</code> в <code>Trainer</code>. Он сам управлял прямым проходом, обратным проходом, шагами оптимизатора, оценкой и checkpoint.</p><p class="small muted">Исходная голова для NER была новой: <code>classifier.weight</code> и <code>classifier.bias</code> отсутствовали в базовом checkpoint. Это ожидаемо.</p></div>
+        <div class="card"><span class="num">B / Accelerate</span><h3>Наш цикл</h3><p>Сами написали <code>DataLoader</code>, <code>AdamW</code>, scheduler и цикл: <code>model(**batch) → loss → accelerator.backward(loss) → optimizer.step() → scheduler.step()</code>. Затем собирали предсказания и считали seqeval на validation.</p><p class="small muted">На одной T4 <code>Accelerator</code> размещает модель и батчи на GPU; <code>pad_across_processes</code> и <code>gather_for_metrics</code> позволяют перенести ту же логику на несколько устройств.</p></div>
+      </div>
+      <div class="callout gold"><strong>Не пугаться при загрузке базового BERT:</strong> <code>UNEXPECTED</code> относятся к старым головам предобучения, <code>MISSING</code> — к новой голове NER, которую и нужно обучить. До обучения получили логиты формы <code>[2, 12, 9]</code> и loss около 2.15.</div>
+      <details><summary>Код: ключевые строки ручного цикла</summary><pre><code>fresh_model = AutoModelForTokenClassification.from_pretrained(
+    "bert-base-cased", id2label=id2label, label2id=label2id
+)
+fresh_model, optimizer, train_loader, val_loader = accelerator.prepare(
+    fresh_model, optimizer, train_loader, val_loader
+)
+
+for epoch in range(3):
+    fresh_model.train()
+    for batch in train_loader:
+        optimizer.zero_grad()
+        loss = fresh_model(**batch).loss
+        accelerator.backward(loss)
+        optimizer.step()
+        scheduler.step()
+
+    fresh_model.eval()
+    # На validation: argmax логитов, исключить gold == -100,
+    # metric.add_batch(...) для каждого батча и metric.compute() в конце.
+    # Затем сохранить модель через accelerator.unwrap_model(...).</code></pre></details>
+      <p class="muted small">В тексте курса есть путаница в порядке возвращаемых значений <code>postprocess()</code>. В нашей реализации переменные названы и переданы в seqeval явно: сначала <code>true_predictions</code> как predictions, затем <code>true_labels</code> как references.</p>
+    </section>
+
+    <section id="results">
+      <div class="section-head"><div><div class="step">07 / Итоги</div><h2>Что получилось на test</h2></div></div>
+      <div class="grid two"><div class="card highlight"><div class="muted small">Trainer · test F1</div><div class="stat mint">0.9142</div><p>Precision 0.9072 · Recall 0.9212<br>Accuracy 0.9827</p></div><div class="card"><div class="muted small">Ручной цикл · test F1</div><div class="stat sky">0.9113</div><p>Precision 0.9026 · Recall 0.9201<br>Accuracy 0.9824</p></div></div>
+      <div class="bars"><div class="bar-row"><span>Trainer</span><div class="track"><div class="fill" style="width:91.417%"></div></div><strong>0.9142</strong></div><div class="bar-row"><span>Свой цикл</span><div class="track"><div class="fill sky" style="width:91.127%"></div></div><strong>0.9113</strong></div></div>
+      <div class="scroll card"><table class="result-table"><thead><tr><th>Эксперимент</th><th>Validation F1 после 3-й эпохи</th><th>Test precision</th><th>Test recall</th><th>Test F1</th></tr></thead><tbody><tr><td>Trainer</td><td>0.9500</td><td>0.9072</td><td>0.9212</td><td><strong>0.9142</strong></td></tr><tr><td>Ручной цикл</td><td>0.9461</td><td>0.9026</td><td>0.9201</td><td><strong>0.9113</strong></td></tr></tbody></table></div>
+      <div class="callout pink">Разница между test F1 двух запусков — около <strong>0.0029</strong>. Validation у обоих выше test. Значит, показатель с validation не следует выдавать за финальное качество на отложенной выборке. Два разных прогона не являются идеально контролируемым сравнением API: случайная инициализация головы, порядок батчей и детали оптимизатора могут различаться. У Trainer лучший validation F1 был после 2-й эпохи (0.9503), но показанный test получен после 3-й.</div>
+      <p>Мы отдельно проверили, что для финальной оценки действительно использовались <strong>3453 test-примера</strong>, а не те же 3250 validation-примеров с переименованными ключами метрик. Это исправило один из самых коварных моментов практики.</p>
+    </section>
+
+    <section id="hub">
+      <div class="section-head"><div><div class="step">08 / После обучения</div><h2>Сохранили и проверили на Hub</h2></div></div>
+      <div class="grid two"><div class="card"><h3>Два отдельных репозитория</h3><p><code>bert-ner-conll2003</code> — модель Trainer;<br><code>bert-ner-conll2003-manual</code> — модель ручного цикла.</p><p class="muted small">Обе модели были загружены в приватные репозитории аккаунта пользователя. В HTML не приводятся адреса и данные доступа.</p></div><div class="card"><h3>Проверка после загрузки</h3><p>Модель ручного цикла заново загрузили с Hub вместе с токенизатором. В тексте «Alice Johnson joined Microsoft in London.» она выдала <code>PER</code>, <code>ORG</code> и <code>LOC</code> с корректными границами.</p></div></div>
+      <p class="muted small" style="margin-top:18px">По дороге исправили и окружение: старый пакет <code>seqeval</code> не собирался через <code>setup.py egg_info</code>, поэтому установили его командой <code>%pip install --use-pep517 seqeval</code>. Для Hub использовали <code>HfApi.upload_folder</code>, поскольку <code>Repository</code> из старой версии урока устарел.</p>
+      <details><summary>Код: загрузить приватную модель и сделать предсказание</summary><pre><code>from transformers import pipeline
+
+manual_ner = pipeline(
+    "token-classification",
+    model=manual_repo_id,
+    token=True,  # авторизация сохранена в Hugging Face Hub
+    aggregation_strategy="simple",
+    device=0,
+)
+manual_ner("Alice Johnson joined Microsoft in London.")</code></pre></details>
+      <div class="callout"><strong>Практический результат:</strong> теперь у нас есть полный воспроизводимый маршрут NER — от исходной BIO-разметки до двух сохранённых моделей и отдельной проверки на test. Уверенность 0.999 у конкретного предсказания не означает 99.9% качества на любых новых текстах; для общей оценки служит test F1.</div>
+    </section>
+  </main>
+  <footer class="footer"><div class="wrap"><strong>Источники и контекст:</strong> <a href="https://huggingface.co/docs/course/chapter7/2" target="_blank" rel="noopener">Hugging Face Course · Token classification</a>, <a href="https://huggingface.co/docs/accelerate/quicktour" target="_blank" rel="noopener">Accelerate Quicktour</a>, <a href="https://huggingface.co/docs/huggingface_hub/guides/upload" target="_blank" rel="noopener">загрузка файлов на Hub</a>. Числа и ход эксперимента — из нашей практики 27 сентября 2026 года. Файл работает без внешних скриптов и соединения с сетью.</div></footer>
+  <script>
+    (() => {
+      const tokenNames=['[CLS]','EU','rejects','German','call','to','boycott','British','la','##mb','.','[SEP]'];
+      const wordIds=[null,0,1,2,3,4,5,6,7,7,8,null];
+      const allLabels=['−100','B-ORG','O','B-MISC','O','O','O','B-MISC','O','O','O','−100'];
+      const firstLabels=['−100','B-ORG','O','B-MISC','O','O','O','B-MISC','O','−100','O','−100'];
+      const container=document.getElementById('alignment-tokens');
+      const allButton=document.getElementById('mode-all');
+      const firstButton=document.getElementById('mode-first');
+      function tagClass(name){return name==='−100'?'ignored':name==='O'?'o':name.includes('ORG')?'org':name.includes('MISC')?'misc':name.includes('LOC')?'loc':name.includes('PER')?'per':'sys';}
+      function draw(mode){
+        const labels=mode==='all'?allLabels:firstLabels;
+        container.replaceChildren();
+        tokenNames.forEach((name,index)=>{
+          const box=document.createElement('div'); box.className='token'+(index===8||index===9?' split':'');
+          const title=document.createElement('b'); title.textContent=name;
+          const word=document.createElement('small'); word.textContent=wordIds[index]===null?'служебный':`слово № ${wordIds[index]}`;
+          const tag=document.createElement('span'); tag.className='tag '+tagClass(labels[index]); tag.textContent=labels[index];
+          box.append(title,word,tag);container.append(box);
+        });
+        for(const [button,active] of [[allButton,mode==='all'],[firstButton,mode==='first']]){button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}
+        document.getElementById('alignment-explainer').textContent=mode==='all'?'Каждая часть слова получает метку; в нашем примере la и ##mb обе имеют O. Если бы слово было B-ORG, его продолжение стало бы I-ORG.':'Наш вариант обучения: только la получает O; ##mb получает −100 и не влияет на loss. Точка после слова по-прежнему получает O.';
+      }
+      allButton.addEventListener('click',()=>draw('all'));firstButton.addEventListener('click',()=>draw('first'));draw('first');
+      const sliders=['tp','fp','fn'].map(id=>document.getElementById(id));
+      function updateMetrics(){
+        const [tp,fp,fn]=sliders.map(input=>Number(input.value));
+        sliders.forEach(input=>document.getElementById(input.id+'-val').textContent=input.value);
+        const precision=tp+fp?tp/(tp+fp):0,recall=tp+fn?tp/(tp+fn):0;
+        const f1=precision+recall?2*precision*recall/(precision+recall):0;
+        document.getElementById('precision').textContent=precision.toFixed(3);
+        document.getElementById('recall').textContent=recall.toFixed(3);
+        document.getElementById('f1').textContent=f1.toFixed(3);
+      }
+      sliders.forEach(input=>input.addEventListener('input',updateMetrics));updateMetrics();
+    })();
+  </script>
+</body>
+</html>
